@@ -5,7 +5,13 @@ By Frank Force 2019
 
 ## ZzArt Features
 
-- 
+- Generate infinite works of abstract art using GLSL fragment shaders.
+- Shaders can be mutated to create variations.
+- Images can be saved in high resolution.
+- Current favorite is saved in local storage.
+- Art can be bookmarked or shared.
+- Satellite mode displays a full preview on a second montor.
+- Shadertoy compatible GLSL code can be downloaded.
 
 ## Examples
 
