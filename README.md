@@ -9,7 +9,7 @@ By Frank Force 2019
 - Shaders can be mutated to create variations.
 - Images can be saved in high resolution.
 - Current favorite is saved in local storage.
-- Art can be bookmarked or shared.
+- Art can be bookmarked or shared via url.
 - Satellite mode displays a full preview on a second montor.
 - Shadertoy compatible GLSL code can be downloaded.
 
@@ -22,6 +22,7 @@ By Frank Force 2019
 - You can click 🔍 or press space to see a large preview.
 - Use the back/forward buttons (X/Z) if you make a mistake.
 - Click 💾 or press S to save an 4K png of your art and share it with tag #zzart
+- You can click 📡 to open a preview on your second monitor.
 
 ## Examples
 
