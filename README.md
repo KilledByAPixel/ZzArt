@@ -13,6 +13,16 @@ By Frank Force 2019
 - Satellite mode displays a full preview on a second montor.
 - Shadertoy compatible GLSL code can be downloaded.
 
+## How to Use
+
+- To get started, click 🎲 or press R a few times generate random seeds.
+- You may need to click many times to find a good starting point.
+- When you like something you see, just click it generate more variations.
+- Continue this process for a few generations to develop the image.
+- You can click 🔍 or press space to see a large preview.
+- Use the back/forward buttons (X/Z) if you make a mistake.
+- Click 💾 or press S to save an 4K png of your art and share it with tag #zzart
+
 ## Examples
 
 ![Example](/examples/1.png)
