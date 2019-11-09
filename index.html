@@ -7,6 +7,27 @@ code credits
 - download.js v4.21, by dandavis; 2008-2018. [MIT] see http://danml.com/download.html for tests/usage
 - Smooth HSV by iq - https://www.shadertoy.com/view/MsS3Wc
 
+TODO...
+
+advanced controls
+- make shorter
+- mutation rate
+- show stats
+- custom image
+- separate preview window
+- make simpler variations
+
+try for loops
+github
+family tree
+try matrix transform
+show heritage
+right click and mouse wheel to position
+combine into 1 shader
+favorites list
+print button
+hide statlite option
+
 -->
 
 <!doctype html>
@@ -854,7 +875,7 @@ onresize=_=>UpdateUI();
 
 let onselect=e=>
 {
-    if (satelliteMode)
+    if (e.button != 0 || satelliteMode)
         return;
         
     let rect = canvas_main.getBoundingClientRect();
