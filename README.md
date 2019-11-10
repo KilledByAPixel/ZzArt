@@ -19,6 +19,7 @@ By Frank Force 2019
 - You may need to click many times to find a good starting point.
 - When you like something you see, just click it generate more variations.
 - Continue this process for a few generations to develop the image.
+- If you don't like the variations shown, just click the same one again to generate more.
 - You can click 🔍 or press space to see a large preview.
 - Use the back/forward buttons (X/Z) if you make a mistake.
 - Click 💾 or press S to save an 4K png of your art and share it with tag #zzart
