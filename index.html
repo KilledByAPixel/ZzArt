@@ -114,6 +114,7 @@ button.satellite
 <td style='font-size: 20px; line-height: 40px;'><center>
 <input id=checkbox_hideWatermark onclick=UpdateUI() type=checkbox title="Toggle Watermark">Hide Watermark
 <br>Save Canvas Scale: <input type=number id=input_saveScale style='width:50px;height:20px;' value=2>
+<br>Max Iterations: <input type=number id=input_maxIterations style='width:50px;height:20px;' value=3>
 <br>Randomize Complexity: <input type=number id=input_randomizeLength style='width:50px;height:20px;' value=15>
 <br><button id=button_capjs onclick=OpenCapJS()>Open in CapJS</button>
 <br><button id=button_saveCode onclick=SaveCode()>Save Code</button>
@@ -350,6 +351,7 @@ class ShaderObject
     {
         this.shaderStatements = [];
         this.randSeed = randSeed;
+        this.iterationCount = 1;
         this.gridPosX = -1;
         this.gridPosY = -1;
         this.generation = 0;
@@ -383,6 +385,7 @@ class ShaderObject
         this.uvOffsetY = RandBetween(-1,1);
         this.uvScaleX = RandBetween(-1,1);
         this.uvScaleY = RandBetween(-1,1);
+        this.iterationCount = 1+RandInt(2);
         for(let i=statementCount; i--;)
         {
             let statement = new ShaderStatement();
@@ -470,6 +473,12 @@ class ShaderObject
         
         if (Rand() < .1)
             this.rotate = !this.rotate;
+            
+        let maxIterations = Clamp(input_maxIterations.value, 1, 9);
+        if (Rand() < .1)
+            this.iterationCount = 1+RandInt(maxIterations);
+        
+        this.iterationCount = Clamp(this.iterationCount, 1, maxIterations);
     }
     
     GetCode() 
@@ -492,13 +501,14 @@ class ShaderObject
         code += `a.wz+=vec2(${uvox},${uvoy});\n`;
         code += `vec4 b=a;\n\n`;
         code += `// Generated Code - Line Count: ${this.shaderStatements.length}\n`
+        code += `for (int i = 0; i < ${this.iterationCount}; ++i){\n`
         for(let statement of this.shaderStatements)
             code += statement.GetString() + '\n';
         if (this.shaderStatements.length == 0)
             code += `b=a=vec4(0.0);`;
             
         // use hsl color
-        code += `\n// Convert to HSL with Smooth HSV by iq\n`
+        code += `\n}\n// Convert to HSL with Smooth HSV by iq\n`
         code += `a.x=a.x*${this.hueScale.toFixed(3)}+${this.hueOffset.toFixed(3)};\n`;
         code += `a.y=a.y*${this.saturationScale.toFixed(3)};\n`;
         code += `b=clamp(abs(mod(a.x*6.+vec4(0,4,2,1),6.)-3.)-1.,0.,1.);\nb=b*b*(3.-2.*b);\na=a.z*mix(vec4(1),b,a.y);\n`;
