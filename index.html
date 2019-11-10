@@ -10,6 +10,7 @@ code credits
 TODO...
 
 advanced controls
+preview count option
 - make shorter
 - mutation rate
 - show stats
@@ -27,6 +28,7 @@ combine into 1 shader
 favorites list
 print button
 hide statlite option
+
 
 -->
 
@@ -86,9 +88,9 @@ button.satellite
 <div id=div_satellite class=satellite>
 <button id=button_satelliteHelp class=satellite onclick=ButtonSatelliteHelp() title="Help">📡</button>
 <button id=button_satelliteSave class=satellite onclick=ButtonSave() title="Save HD Image [S]">💾</button>
-<font size=10><b>𝓩𝔃𝓐𝓻𝓽</b> - Generation <span id=span_generationsSatellite>0</span></font><br></div>
+<font size=10><b>𝓩𝔃𝓐𝓻𝓽</b> - <span id=span_generationsSatellite>0</span></font><br></div>
 <center>
-<div id=div_title><font size=5><b>𝓩𝔃𝓐𝓻𝓽</b></font> - Generation <span id=span_generations>0</span></div>
+<div id=div_title><font size=5><b>𝓩𝔃𝓐𝓻𝓽</b></font> - <span id=span_generations>0</span></div>
 <div id=buttons_top>
 <button id=button_preview disabled onclick=ButtonTogglePreview() title="Toggle Preview [Spacebar]">🔍</button>
 <button id=button_back disabled onclick=ChangeMemoryLocation(-1) title="Undo [Z]">◄</button>
@@ -97,6 +99,7 @@ button.satellite
 <button id=button_randomize onclick=ButtonRandomize() title="Randomize [R]">🎲</button>
 <button id=button_share onclick=ButtonShare() title="Copy To Clipboard">📋</button>
 <button id=button_openSatellite onclick=ButtonSatellite() title="Open Satellite Preview">📡</button>
+<button id=button_seed onclick=ButtonSeed() title="Enter Seed">🌱</button>
 <button id=button_advanced onclick=ButtonAdvanced() title="Advanced Controls">🔧</button>
 <button id=button_help onclick=ButtonHelp() title="Help">❓</button>
 <br></div>
@@ -114,7 +117,7 @@ button.satellite
 <td style='font-size: 20px; line-height: 40px;'><center>
 <input id=checkbox_hideWatermark onclick=UpdateUI() type=checkbox title="Toggle Watermark">Hide Watermark
 <br>Save Canvas Scale: <input type=number id=input_saveScale style='width:50px;height:20px;' value=2>
-<br>Max Iterations: <input type=number id=input_maxIterations style='width:50px;height:20px;' value=1>
+<br>Max Iterations: <input type=number id=input_maxIterations style='width:50px;height:20px;' value=3>
 <br>Randomize Complexity: <input type=number id=input_randomizeLength style='width:50px;height:20px;' value=15>
 <br><button id=button_capjs onclick=OpenCapJS()>Open in CapJS</button>
 <br><button id=button_saveCode onclick=SaveCode()>Save Code</button>
@@ -144,6 +147,7 @@ let rotateCanvas = 0;
 let dataVersion = 1;
 let itchMode = 0;
 let satelliteMode = 0;
+let maxIterations = 1;
 
 function Init()
 {
@@ -311,6 +315,8 @@ function SetBest(bestX, bestY)
 
 function MakeVariations(skipX, skipY)
 {
+    textarea_code.value = favoriteShader.GetCode();
+        
     for(let X=0; X<gridSize; X++)
     for(let Y=0; Y<gridSize; Y++)
     {
@@ -385,7 +391,7 @@ class ShaderObject
         this.uvOffsetY = RandBetween(-1,1);
         this.uvScaleX = RandBetween(-1,1);
         this.uvScaleY = RandBetween(-1,1);
-        this.iterationCount = 1+RandInt(Clamp(input_maxIterations.value, 1, 9));
+        this.iterationCount = 1+RandInt(maxIterations);
         for(let i=statementCount; i--;)
         {
             let statement = new ShaderStatement();
@@ -474,7 +480,6 @@ class ShaderObject
         if (Rand() < .1)
             this.rotate = !this.rotate;
             
-        let maxIterations = Clamp(input_maxIterations.value, 1, 9);
         if (Rand() < .1)
             this.iterationCount = 1+RandInt(maxIterations);
         this.iterationCount = Clamp(this.iterationCount, 1, maxIterations);
@@ -489,7 +494,7 @@ class ShaderObject
         let uvoy = (s*this.uvOffsetY).toFixed(3);
         
         let code = ``;
-        code += `// ZzArt - Generation: ${this.GetGenerationString()}\n`;
+        code += `// ZzArt - ${this.GetGenerationString()}\n`;
         code += `vec4 sqrtA(vec4 a){return sqrt(abs(a));}\n`;
         code += `void mainImage(out vec4 a, in vec2 p){\n`;
         let rotateSwizzle = rotateCanvas^this.rotate? 'yxyx' : 'xyxy';
@@ -521,15 +526,24 @@ class ShaderObject
     Render() 
     {
         let code = this.GetCode();
-        textarea_code.value = code;
         RenderShader(code);
     }
     
-    GetGenerationString()
+    GetGenerationString(shorten)
     {
+        let string = ''
+        
+        if (!shorten)
+            string += this.IsVariation()? 'Generation: ' : 'Seed: '
+    
+        if (!this.IsVariation())
+            return string + this.randSeed;
+        
         if (this.subGeneration <= 1)
-            return this.generation;
-        return this.generation + '-' + (this.subGeneration>27?this.subGeneration:String.fromCharCode(65+this.subGeneration-2));
+            string += this.generation;
+        else
+            string += this.generation + '-' + (this.subGeneration>27?this.subGeneration:String.fromCharCode(65+this.subGeneration-2));
+        return string;
     }
 };
 
@@ -664,6 +678,7 @@ function UpdateUI()
     if (satelliteMode)
         return;
 
+    maxIterations = Clamp(input_maxIterations.value, 1, 9);
     button_back.disabled = shaderMemoryLocation <= 0;
     button_forward.disabled = shaderMemoryLocation >= shaderMemory.length-1;
     button_preview.disabled = !favoriteShader || favoriteShader.gridPosX<0;
@@ -715,7 +730,7 @@ function UpdateURL()
     {
         let shader = shaderMemory[shaderMemoryLocation];
         window.history.replaceState(null,null,url);
-        document.title = `ZzArt - Generation ` + shader.GetGenerationString();
+        document.title = `ZzArt - ` + shader.GetGenerationString();
     }
 }
 
@@ -765,9 +780,9 @@ This satellite 📡 mode allows you to view a full screen preview of our current
     );
 }
 
-
-function ButtonRandomize()
+function Randomize(seed)
 {
+    randSeed = seed;
     showPreview = 0;
     ++shaderMemoryLocation;
     shaderMemory.length=shaderMemoryLocation;
@@ -775,6 +790,17 @@ function ButtonRandomize()
     RandomizeShaders();
     DrawShaders();
     UpdateUI();
+}
+
+function ButtonRandomize()
+{
+    Randomize(Date.now());
+}
+
+function ButtonSeed()
+{
+    let seed = window.prompt('Enter a ZzArt Seed:', '');
+    Randomize(parseInt(seed));
 }
 
 function ButtonAdvanced()
@@ -820,7 +846,7 @@ function ButtonSave()
     if (!checkbox_hideWatermark.checked)
     {
         // watermark
-        let watermarkText = `𝓩𝔃𝓐𝓻𝓽 ~ Generation ${favoriteShader.GetGenerationString()} ~ zzart.3d2k.com`;
+        let watermarkText = `𝓩𝔃𝓐𝓻𝓽 ~ ${favoriteShader.GetGenerationString()} ~ zzart.3d2k.com`;
         let X = canvas_save.width-10;
         let Y = canvas_save.height-10;
         x.textAlign='right';
@@ -840,7 +866,7 @@ function ButtonSave()
 
 function SaveCode()
 {
-    let filename = 'ZzArt-' + favoriteShader.GetGenerationString() + ".txt";
+    let filename = 'ZzArt-' + favoriteShader.GetGenerationString(1) + ".txt";
     download(favoriteShader.GetCode(), filename, "data:application/octet-stream");
 }
 
@@ -876,7 +902,7 @@ function OpenCapJS()
     if (!favoriteShader)
         return;
 
-    let filename = 'ZzArt-' + favoriteShader.GetGenerationString();
+    let filename = 'ZzArt - ' + favoriteShader.GetGenerationString();
     let search = "";
     search += "filename=" + encodeURIComponent(filename);
     search += "&mode=" + encodeURIComponent('shadertoy');
