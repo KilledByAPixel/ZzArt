@@ -9,6 +9,8 @@ code credits
 
 TODO...
 
+seed entry letters or blank
+store seed history
 advanced controls
 preview count option
 - make shorter
@@ -29,6 +31,7 @@ favorites list
 print button
 hide statlite option
 
+reverse seeds
 
 -->
 
@@ -505,16 +508,19 @@ class ShaderObject
         code += `a.wz+=vec2(${uvox},${uvoy});\n`;
         code += `vec4 b=a;\n\n`;
         code += `// Generated Code - Line Count: ${this.shaderStatements.length}\n`
-        if (this.iterationCount > 1)
-            code += `for (int i = 0; i < ${this.iterationCount}; ++i)\n{\n`
-        for(let statement of this.shaderStatements)
-            code += statement.GetString() + '\n';
+        
         if (this.shaderStatements.length == 0)
             code += `b=a=vec4(0.0);\n`;
-            
+        else
+        {
+            if (this.iterationCount > 1)
+                code += `for (int i = 0; i < ${this.iterationCount}; ++i)\n{\n`
+            for(let statement of this.shaderStatements)
+                code += statement.GetString() + '\n';
+            if (this.iterationCount > 1)
+                code += `}\n`
+        }
         // use hsl color
-        if (this.iterationCount > 1)
-            code += `}\n`
         code += `\n// Convert to HSL with Smooth HSV by iq\n`
         code += `a.x=a.x*${this.hueScale.toFixed(3)}+${this.hueOffset.toFixed(3)};\n`;
         code += `a.y=a.y*${this.saturationScale.toFixed(3)};\n`;
@@ -799,8 +805,12 @@ function ButtonRandomize()
 
 function ButtonSeed()
 {
-    let seed = window.prompt('Enter a ZzArt Seed:', '');
-    Randomize(parseInt(seed));
+    let seedString = String(window.prompt('Enter a ZzArt Seed:', ''));
+    let seed = parseInt(seedString);
+    if (!Number.isInteger(seed))
+        seed = HashString(seedString);
+    
+    Randomize(seed);
 }
 
 function ButtonAdvanced()
@@ -1150,6 +1160,14 @@ function ShuffleArray(array)
 
     return array;
 }
+
+function HashString(s) 
+{
+    let hash=0;
+    for (let i=0; i<s.length; i++)
+        hash = (((hash << 5) - hash) + s.charCodeAt(i)) | 0;
+    return hash;
+};
 
 ///////////////////////////////////////////////////////////////////////  
 
