@@ -9,7 +9,8 @@ code credits
 
 TODO...
 
-seed entry letters or blank
+show seed name
+more functions, investigate bounds
 store seed history
 advanced controls
 preview count option
@@ -120,8 +121,9 @@ button.satellite
 <td style='font-size: 20px; line-height: 40px;'><center>
 <input id=checkbox_hideWatermark onclick=UpdateUI() type=checkbox title="Toggle Watermark">Hide Watermark
 <br>Save Canvas Scale: <input type=number id=input_saveScale style='width:50px;height:20px;' value=2>
-<br>Max Iterations: <input type=number id=input_maxIterations style='width:50px;height:20px;' value=3>
-<br>Randomize Complexity: <input type=number id=input_randomizeLength style='width:50px;height:20px;' value=15>
+<br>Start Iterations: <input type=number id=input_startIterations style='width:50px;height:20px;' value=1>
+<br>Max Iterations: <input type=number id=input_maxIterations style='width:50px;height:20px;' value=5>
+<br>Randomize Length: <input type=number id=input_randomizeLength style='width:50px;height:20px;' value=15>
 <br><button id=button_capjs onclick=OpenCapJS()>Open in CapJS</button>
 <br><button id=button_saveCode onclick=SaveCode()>Save Code</button>
 </center></td></tr></table></div>
@@ -151,6 +153,7 @@ let dataVersion = 1;
 let itchMode = 0;
 let satelliteMode = 0;
 let maxIterations = 1;
+let startIterations = 1;
 
 function Init()
 {
@@ -394,7 +397,7 @@ class ShaderObject
         this.uvOffsetY = RandBetween(-1,1);
         this.uvScaleX = RandBetween(-1,1);
         this.uvScaleY = RandBetween(-1,1);
-        this.iterationCount = 1+RandInt(maxIterations);
+        this.iterationCount = 1+RandInt(startIterations);
         for(let i=statementCount; i--;)
         {
             let statement = new ShaderStatement();
@@ -484,7 +487,7 @@ class ShaderObject
             this.rotate = !this.rotate;
             
         if (Rand() < .1)
-            this.iterationCount = 1+RandInt(maxIterations);
+            this.iterationCount += RandInt(3)-1;
         this.iterationCount = Clamp(this.iterationCount, 1, maxIterations);
     }
     
@@ -685,6 +688,7 @@ function UpdateUI()
         return;
 
     maxIterations = Clamp(input_maxIterations.value, 1, 9);
+    startIterations = Clamp(input_startIterations.value, 1, maxIterations);
     button_back.disabled = shaderMemoryLocation <= 0;
     button_forward.disabled = shaderMemoryLocation >= shaderMemory.length-1;
     button_preview.disabled = !favoriteShader || favoriteShader.gridPosX<0;
