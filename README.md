@@ -1,4 +1,4 @@
-# 𝓩𝔃𝓐𝓻𝓽 - Abstract Art Evolved
+# 𝓩𝔃𝓐𝓻𝓽 - Abstract Art Evolution
 By Frank Force 2019
 
 # [LIVE DEMO!](https://zzart.3d2k.com)
