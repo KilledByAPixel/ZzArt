@@ -1,38 +1,12 @@
 <!--
 
-🎨 ZzArt - Abstract Art Evolution
+ZzArt - Abstract Art Evolution
 © Frank Force 2019
 
 code credits 
 - download.js v4.21, by dandavis; 2008-2018. [MIT] see http://danml.com/download.html for tests/usage
 - Smooth HSV by iq - https://www.shadertoy.com/view/MsS3Wc
-
-TODO...
-
-show seed name
-more functions, investigate bounds
-store seed history
-advanced controls
-preview count option
-- make shorter
-- mutation rate
-- show stats
-- custom image
-- separate preview window
-- make simpler variations
-
-try for loops
-github
-family tree
-try matrix transform
-show heritage
-right click and mouse wheel to position
-combine into 1 shader
-favorites list
-print button
-hide statlite option
-
-reverse seeds
+- github-corners by Tim Holman - https://github.com/tholman/github-corners
 
 -->
 
@@ -193,10 +167,10 @@ function InitSatelliteMode()
     canvas_shader.height = canvas_main.height;
     if (favoriteShader)
         favoriteShader.Render();
-        
+       
+    // set ui for satellite mode
     canvas_shader.style = 'position:absolute; left:0px; top:0px;width:100%;height:100%'
     canvas_shader.style.zIndex = 10;
-
     canvas_main.hidden = 1;
     canvas_shader.hidden = 0;
     buttons_top.style.display = 'none';
@@ -210,12 +184,14 @@ function InitSatelliteMode()
 
 function UpdateSatelliteMode()
 { 
+    // continuous poll favorite from local storage
     let localStorageItem = localStorage.getItem('favorite');
     if (localStorageItem)
     {
         let rawObject = JSON.parse(localStorageItem);
         if (rawObject.randSeed != favoriteShader.randSeed)
         {
+            // redraw new favorite
             favoriteShader = Object.assign(new ShaderObject(), rawObject).Clone();
             favoriteShader.Render();
             span_generationsSatellite.innerHTML = favoriteShader.GetGenerationString();
@@ -225,6 +201,7 @@ function UpdateSatelliteMode()
 
 function TryToRotate()
 {
+    // rotate canvas if window is more vertical then horizontal
     let newRotateCanvas = window.innerHeight > window.innerWidth;
     if (rotateCanvas == newRotateCanvas)
         return;
@@ -624,7 +601,7 @@ class ShaderStatement
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////
-// RANDOMIZER
+// SHADER RANDOMIZER
 
 let shaderRandomizer =
 {
@@ -744,18 +721,6 @@ function UpdateURL()
     }
 }
 
-function ButtonHelp()
-{
-    window.alert(
-`Welcome to 𝓩𝔃𝓐𝓻𝓽 ~ Abstract Art Evolution
-
-To get started, click 🎲 a few times generate random seeds.
-When you like something, just click it see more variations.
-You can click 🔍 or press space to see a large preview.
-Click 💾 to save your art and it online with tag #zzart`
-    );
-}
-
 function ChangeMemoryLocation(direction)
 {
     if (shaderMemoryLocation + direction < 0 || shaderMemoryLocation + direction >= shaderMemory.length)
@@ -787,6 +752,18 @@ function ButtonSatelliteHelp()
 `Welcome to 𝓩𝔃𝓐𝓻𝓽 ~ Abstract Art Evolution
 
 This satellite 📡 mode allows you to view a full screen preview of our current favorite on a second monitor while browsing!`
+    );
+}
+
+function ButtonHelp()
+{
+    window.alert(
+`Welcome to 𝓩𝔃𝓐𝓻𝓽 ~ Abstract Art Evolution
+
+To get started, click 🎲 a few times generate random seeds.
+When you like something, just click it see more variations.
+You can click 🔍 or press space to see a large preview.
+Click 💾 to save your art and it online with tag #zzart`
     );
 }
 
@@ -886,14 +863,14 @@ function SaveCode()
 
 function ButtonShare()
 {
-    const copyToClipboard = str =>
+    const copyToClipboard=s=>
     {
-        const el = document.createElement('textarea');
-        el.value = str;
-        document.body.appendChild(el);
-        el.select();
+        const e = document.createElement('textarea');
+        e.value = s;
+        document.body.appendChild(e);
+        e.select();
         document.execCommand('copy');
-        document.body.removeChild(el);
+        document.body.removeChild(e);
     };
     
     copyToClipboard(GetShareUrl());
@@ -965,19 +942,19 @@ onkeydown=e=>
         return;
         
     let used = 0;
-    if (e.keyCode == 32)
+    if (e.keyCode == 32) // Space
     {
         if (favoriteShader)
             ButtonTogglePreview();
         used = 1;
     }
-    else if (e.keyCode == 83)
+    else if (e.keyCode == 83) // S
         ButtonSave(), used = 1;
-    else if (e.keyCode == 90)
+    else if (e.keyCode == 90) // Z
         ChangeMemoryLocation(-1), used = 1;
-    else if (e.keyCode == 88)
+    else if (e.keyCode == 88) // X
         ChangeMemoryLocation(1), used = 1;
-    else if (e.keyCode == 82)
+    else if (e.keyCode == 82) // R
         ButtonRandomize(), used = 1;
     
     if (used)
@@ -1003,7 +980,6 @@ function LoadFromURL()
     
     if (IsMobile() && window.history)
     {
-        // get rid of search in url
         url.search= "";
         window.history.pushState(null,null,url.toString())
     }
