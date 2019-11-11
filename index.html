@@ -8,6 +8,31 @@ code credits
 - Smooth HSV by iq - https://www.shadertoy.com/view/MsS3Wc
 - github-corners by Tim Holman - https://github.com/tholman/github-corners
 
+TODO...
+
+save original seed
+show seed name
+more functions, investigate bounds
+store seed history
+advanced controls
+preview count option
+- make shorter
+- mutation rate
+- show stats
+- custom image
+- separate preview window
+- make simpler variations
+
+try for loops
+github
+family tree
+try matrix transform
+show heritage
+right click and mouse wheel to position
+combine into 1 shader
+favorites list
+reverse seeds
+
 -->
 
 <!doctype html>
@@ -75,9 +100,9 @@ button.satellite
 <button id=button_forward disabled onclick=ChangeMemoryLocation(1) title="Redo [X]">►</button>
 <button id=button_save onclick=ButtonSave() title="Save HD Image [S]">💾</button>
 <button id=button_randomize onclick=ButtonRandomize() title="Randomize [R]">🎲</button>
-<button id=button_share onclick=ButtonShare() title="Copy To Clipboard">📋</button>
-<button id=button_openSatellite onclick=ButtonSatellite() title="Open Satellite Preview">📡</button>
+<button id=button_share hidden onclick=ButtonShare() title="Copy To Clipboard">📋</button>
 <button id=button_seed onclick=ButtonSeed() title="Enter Seed">🌱</button>
+<button id=button_openSatellite onclick=ButtonSatellite() title="Open Satellite Preview">📡</button>
 <button id=button_advanced onclick=ButtonAdvanced() title="Advanced Controls">🔧</button>
 <button id=button_help onclick=ButtonHelp() title="Help">❓</button>
 <br></div>
@@ -165,8 +190,7 @@ function InitSatelliteMode()
     // redraw the favorite shader
     canvas_shader.width = canvas_main.width;
     canvas_shader.height = canvas_main.height;
-    if (favoriteShader)
-        favoriteShader.Render();
+    favoriteShader.randSeed = 0;
        
     // set ui for satellite mode
     canvas_shader.style = 'position:absolute; left:0px; top:0px;width:100%;height:100%'
@@ -179,6 +203,7 @@ function InitSatelliteMode()
     div_title.style.display = 'none';
     div_satellite.style.display = 'inline';
     
+    UpdateSatelliteMode();
     setInterval(UpdateSatelliteMode, 100);
 }
 
@@ -224,10 +249,12 @@ function RandomizeShaders()
     SaveLocalStorage();
     
     favoriteShader = new ShaderObject();
+    for(let i=9;i--;) Rand(); // warm up random number generator
+    
     for(let X=0; X<gridSize; X++)
     for(let Y=0; Y<gridSize; Y++)
     {
-        let shader = shaderGrid[X][Y] = new ShaderObject();
+        let shader = shaderGrid[X][Y] = favoriteShader.Clone();
         shader.SetGridPos(X,Y);
         shader.Randomize();
     }
@@ -315,6 +342,7 @@ function SetFavoriteFromMemory()
 {
     favoriteShader = shaderMemory[shaderMemoryLocation];
     randSeed = favoriteShader.randSeed;
+    randSeedString = favoriteShader.randSeedString;
     
     if (favoriteShader.IsVariation())
     {
@@ -329,6 +357,8 @@ function SetFavoriteFromMemory()
     }
     else
         RandomizeShaders();
+        
+    randSeedString = '';
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -340,6 +370,7 @@ class ShaderObject
     {
         this.shaderStatements = [];
         this.randSeed = randSeed;
+        this.randSeedString = randSeedString.length? randSeedString : ''+randSeed;
         this.iterationCount = 1;
         this.gridPosX = -1;
         this.gridPosY = -1;
@@ -368,7 +399,6 @@ class ShaderObject
         this.saturationScale = RandBetween(.5,1);
         this.generation = 0;
         this.subGeneration = 0;
-        this.randSeed = randSeed;
         this.shaderStatements = [];
         this.uvOffsetX = RandBetween(-1,1);
         this.uvOffsetY = RandBetween(-1,1);
@@ -519,16 +549,23 @@ class ShaderObject
     {
         let string = ''
         
-        if (!shorten)
+        let seed = this.randSeedString?this.randSeedString:this.randSeed;
+        if (shorten)
+            string += `${seed}-`;
+        else
             string += this.IsVariation()? 'Generation: ' : 'Seed: '
-    
+            
         if (!this.IsVariation())
-            return string + this.randSeed;
+            return string + seed;
         
         if (this.subGeneration <= 1)
             string += this.generation;
         else
             string += this.generation + '-' + (this.subGeneration>27?this.subGeneration:String.fromCharCode(65+this.subGeneration-2));
+            
+        if (!shorten && this.IsVariation())
+            string += ` (${seed})`
+            
         return string;
     }
 };
@@ -763,13 +800,15 @@ function ButtonHelp()
 To get started, click 🎲 a few times generate random seeds.
 When you like something, just click it see more variations.
 You can click 🔍 or press space to see a large preview.
-Click 💾 to save your art and it online with tag #zzart`
+Use 📡 to view open the large preview in a separate window.
+Click 💾 to save your art as a 4K png image file.`
     );
 }
 
 function Randomize(seed)
 {
     randSeed = seed;
+        
     showPreview = 0;
     ++shaderMemoryLocation;
     shaderMemory.length=shaderMemoryLocation;
@@ -781,17 +820,22 @@ function Randomize(seed)
 
 function ButtonRandomize()
 {
-    Randomize(Date.now());
+    let seed = Math.abs(Date.now() % 1e9);
+    Randomize(seed);
 }
 
 function ButtonSeed()
 {
-    let seedString = String(window.prompt('Enter a ZzArt Seed:', ''));
+    let seedString = String(window.prompt('Enter a ZzArt seed to use for randomization:', ''));
     let seed = parseInt(seedString);
     if (!Number.isInteger(seed))
         seed = HashString(seedString);
+    if (seed==0)
+        seed = 1; // prevent it from being black
     
+    randSeedString = seedString;
     Randomize(seed);
+    randSeedString = '';
 }
 
 function ButtonAdvanced()
@@ -852,7 +896,8 @@ function ButtonSave()
         x.fillText(watermarkText, X,Y);
     }
     
-    download(canvas_save.toDataURL("image/png"), "zzart.png","image/png");
+    let filename = 'ZzArt-' + favoriteShader.GetGenerationString(1) + ".png";
+    download(canvas_save.toDataURL("image/png"), filename,"image/png");
 }
 
 function SaveCode()
@@ -1105,9 +1150,10 @@ function RenderShader(code)
 ///////////////////////////////////////////////////////////////////////////////
 // MATH STUFF
 
+let randSeedString = '';
 let randSeed = Date.now();
 function RandSeeded()
-{ 
+{
     randSeed^=randSeed<<13
     randSeed^=randSeed>>7
     randSeed^=randSeed<<17
@@ -1118,6 +1164,14 @@ let Rand             = (m=1)=>m*RandInt(1e9)/1e9;
 let RandInt          = m=>RandSeeded()%m;
 let RandBetween      = (a,b)=>a+Rand(b-a);
 let RandIntBetween   = (a,b)=>a+RandInt(b-a+1);
+
+let HashString=string=>
+{
+    let hash=0;
+    for (let i=0; i<string.length; i++)
+        hash = (hash << 5) - hash + string.charCodeAt(i) | 0;
+    return hash;
+};
 
 let PI                  = Math.PI;
 let Min=(a, b)          => a<b? a : b;
@@ -1140,14 +1194,6 @@ function ShuffleArray(array)
 
     return array;
 }
-
-function HashString(s) 
-{
-    let hash=0;
-    for (let i=0; i<s.length; i++)
-        hash = (((hash << 5) - hash) + s.charCodeAt(i)) | 0;
-    return hash;
-};
 
 ///////////////////////////////////////////////////////////////////////  
 
