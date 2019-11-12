@@ -10,6 +10,7 @@ code credits
 
 TODO...
 
+supersamaple
 save original seed
 show seed name
 more functions, investigate bounds
@@ -122,7 +123,7 @@ button.satellite
 <br>Save Canvas Scale: <input type=number id=input_saveScale style='width:50px;height:20px;' value=2>
 <br>Start Iterations: <input type=number id=input_startIterations style='width:50px;height:20px;' value=1>
 <br>Max Iterations: <input type=number id=input_maxIterations style='width:50px;height:20px;' value=5>
-<br>Randomize Length: <input type=number id=input_randomizeLength style='width:50px;height:20px;' value=15>
+<br>Randomize Length: <input type=number id=input_randomizeLength style='width:50px;height:20px;' value=10>
 <br><button id=button_capjs onclick=OpenCapJS()>Open in CapJS</button>
 <br><button id=button_saveCode onclick=SaveCode()>Save Code</button>
 </center></td></tr></table></div>
@@ -744,7 +745,7 @@ function UpdateUI()
 
     SaveLocalStorage();
     
-    if (!itchMode && !IsMobile())
+    if (!itchMode)
         UpdateURL();
 }
 
