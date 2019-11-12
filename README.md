@@ -22,6 +22,7 @@ By Frank Force 2019
 - If you don't like the variations shown, just click the same one again to generate more.
 - You can click 🔍 or press space to see a large preview.
 - Use the back/forward buttons (X/Z) if you make a mistake.
+- It may take 10 or more stages of evolution to find something really nice.
 - Click 💾 or press S to save an 4K png of your art and share it with tag #zzart
 - You can also bookmark zzart links or use 📋 to copy the link to the clipboard.
 - Use 📡 to open a preview on your second monitor.
