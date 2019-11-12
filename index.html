@@ -717,7 +717,8 @@ function UpdateUI()
     let isMobile = IsMobile();
     if (isMobile || itchMode)
     {
-        button_help.style.display = 'none';
+        if (!itchMode)
+            button_help.style.display = 'none';
         button_advanced.style.display = 'none';
         button_share.style.display = 'none';
         div_credit.style.display = 'none';
@@ -826,7 +827,11 @@ function ButtonRandomize()
 
 function ButtonSeed()
 {
-    let seedString = String(window.prompt('Enter a ZzArt seed to use for randomization:', ''));
+    let seedString = window.prompt('Enter a ZzArt seed to use for randomization:', '');
+    if (seedString === null)
+        return;
+        
+    seedString = String(seedString);
     let seed = parseInt(seedString);
     if (!Number.isInteger(seed))
         seed = HashString(seedString);
