@@ -8,32 +8,6 @@ code credits
 - Smooth HSV by iq - https://www.shadertoy.com/view/MsS3Wc
 - github-corners by Tim Holman - https://github.com/tholman/github-corners
 
-TODO...
-
-supersamaple
-save original seed
-show seed name
-more functions, investigate bounds
-store seed history
-advanced controls
-preview count option
-- make shorter
-- mutation rate
-- show stats
-- custom image
-- separate preview window
-- make simpler variations
-
-try for loops
-github
-family tree
-try matrix transform
-show heritage
-right click and mouse wheel to position
-combine into 1 shader
-favorites list
-reverse seeds
-
 -->
 
 <!doctype html>
@@ -509,7 +483,14 @@ class ShaderObject
         
         let code = ``;
         code += `// ZzArt - ${this.GetGenerationString()}\n`;
-        code += `vec4 sqrtA(vec4 a){return sqrt(abs(a));}\n`;
+        code += `vec4 asinA(vec4 a)        {return asin(clamp(a,-1.,1.));}\n`;
+        code += `vec4 acosA(vec4 a)        {return acos(clamp(a,-1.,1.));}\n`;
+        code += `vec4 logA(vec4 a)         {return log(abs(a));}\n`;
+        code += `vec4 log2A(vec4 a)        {return log2(abs(a));}\n`;
+        code += `vec4 sqrtA(vec4 a)        {return sqrt(abs(a));}\n`;
+        code += `vec4 inversesqrtA(vec4 a) {return inversesqrt(abs(a));}\n`;
+        code += `vec4 pow2(vec4 a)         {return a*a;}\n`;
+        code += `vec4 pow3(vec4 a)         {return a*a*a;}\n`;
         code += `void mainImage(out vec4 a, in vec2 p){\n`;
         let rotateSwizzle = rotateCanvas^this.rotate? 'yxyx' : 'xyxy';
         code += `a=p.${rotateSwizzle}/iResolution.${rotateSwizzle};\n`;
@@ -655,11 +636,12 @@ let shaderRandomizer =
 
         let f =
         [
-            'sin','cos','normalize',
-            'tan','asin','acos','atan',
-            'log','log2','exp','exp2',
-            'sqrtA','inversesqrt','fract',
-            'abs','sign','floor','ceil'
+            'sin','cos','normalize','length',
+            'tan','asinA','acosA','atan',
+            'logA','log2A','exp','exp2',
+            'sqrtA','inversesqrtA','fract',
+            'abs','sign','floor','ceil',
+            'pow2','pow3'
         ];
         return f[RandInt(f.length)];
     },
@@ -1118,7 +1100,7 @@ function RenderShader(code)
     let pixelShader = x.createShader(x.FRAGMENT_SHADER)
     let shaderProgramCode = 
         "precision mediump float;"+
-        `const vec3 iResolution = vec3(${canvas_shader.width},${canvas_shader.height},0);`+
+        `const vec3 iResolution = vec3(${canvas_shader.width},${canvas_shader.height},0.);`+
         code+
         `\nvoid main(){mainImage(gl_FragColor,gl_FragCoord.xy);gl_FragColor.a=1.;}`
     x.shaderSource(pixelShader, shaderProgramCode)
