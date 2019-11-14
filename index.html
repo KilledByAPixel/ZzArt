@@ -500,8 +500,9 @@ class ShaderObject
         
         let code = ``;
         code += `// ZzArt - ${this.GetGenerationString()}\n\n`;
+        code += `const float PI=3.141592653589793;\n`;
         if (this.usePalette)
-            code += `vec3 CosinePalette( float t, vec3 a, vec3 b, vec3 c, vec3 d ) { return a + b*cos( 6.28318*(c*t+d)); }\n`;
+            code += `vec3 CosinePalette( float t, vec3 a, vec3 b, vec3 c, vec3 d ) { return a + b*cos( PI*2.*(c*t+d)); }\n`;
         else
             code += `vec3 SmoothHSV(vec3 c) { vec3 rgb = clamp(abs(mod(c.x*6.+vec3(0,4,2),6.)-3.)-1.,0.,1.); return c.z * mix( vec3(1), rgb*rgb*(3.-2.*rgb), c.y); }\n`
         code += `vec4 lengthA(vec4 a)      { return vec4(length(a)); }\n`;
@@ -538,7 +539,7 @@ class ShaderObject
         if (this.usePalette)
         {
             code += `\n// Cosine palettes by iq\n`
-            code += `a.x = a.x * ${this.hueScale.toFixed(3)}+${this.hueOffset.toFixed(3)};\n`
+            code += `a.x = a.x * ${(this.hueScale*.1).toFixed(3)}+${this.hueOffset.toFixed(3)};\n`
             code += `a.xyz = b.x * CosinePalette(a.x`
             for(let color of this.paletteColors)
                 code += `,\n ${color.GetShaderCode()}`;
