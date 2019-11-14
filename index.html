@@ -359,6 +359,8 @@ class ShaderObject
         this.uvScaleX = 1;
         this.uvScaleY = 1;
         this.rotate = 0;
+        this.usePalette = 0;
+        this.paletteColors = [new Vector3(), new Vector3(), new Vector3(), new Vector3()];
     }
     
     SetGridPos(X,Y) { this.gridPosX = X; this.gridPosY = Y; }
@@ -369,9 +371,11 @@ class ShaderObject
         let statementCount = input_randomizeLength.value;
         if (statementCount <0)
             statementCount = 0;
+        
+        this.usePalette = 1;
         this.hueOffset = Rand();
         this.hueScale = RandBetween(-1,1);
-        this.saturationScale = RandBetween(.5,1);
+        this.saturationScale = Rand();
         this.generation = 0;
         this.subGeneration = 0;
         this.shaderStatements = [];
@@ -379,13 +383,16 @@ class ShaderObject
         this.uvOffsetY = RandBetween(-1,1);
         this.uvScaleX = RandBetween(-1,1);
         this.uvScaleY = RandBetween(-1,1);
-        this.iterationCount = 1+RandInt(startIterations);
+        this.iterationCount = startIterations;
         for(let i=statementCount; i--;)
         {
             let statement = new ShaderStatement();
             statement.Randomize();
             this.shaderStatements.push(statement);
         }
+        
+        for(let color of this.paletteColors)
+            color.Randomize(0,1);
     }
     
     Clone() 
@@ -394,6 +401,9 @@ class ShaderObject
         clone.shaderStatements = [];
         for(let statement of this.shaderStatements)
             clone.shaderStatements.push(Object.assign(new ShaderStatement(), statement));
+        clone.paletteColors = [];
+        for(let color of this.paletteColors)
+            clone.paletteColors.push(Object.assign(new Vector3(), color));
         return clone;
     }
     
@@ -442,14 +452,21 @@ class ShaderObject
             this.shaderStatements.splice(r, 0, statement);
         }
         
+        // mutate colors
         this.hueOffset += RandBetween(-.1,.1)
-        if (Rand() < .3)
+        if (Rand() < .2)
             this.hueOffset = Rand();
-        if (Rand() < .3)
+        if (Rand() < .2)
             this.saturationScale = Rand();
-        if (Rand() < .3)
+        if (Rand() < .2)
             this.hueScale = RandBetween(-1,1);
-            
+        if (Rand() < .2)
+        {
+            for(let color of this.paletteColors)
+                color.Randomize(0,1);
+        }
+        
+        // mutate position
         if (Rand() < .1)
         {
             this.uvOffsetX = RandBetween(-1,1);
@@ -482,23 +499,28 @@ class ShaderObject
         let uvoy = (s*this.uvOffsetY).toFixed(3);
         
         let code = ``;
-        code += `// ZzArt - ${this.GetGenerationString()}\n`;
-        code += `vec4 asinA(vec4 a)        {return asin(clamp(a,-1.,1.));}\n`;
-        code += `vec4 acosA(vec4 a)        {return acos(clamp(a,-1.,1.));}\n`;
-        code += `vec4 logA(vec4 a)         {return log(abs(a));}\n`;
-        code += `vec4 log2A(vec4 a)        {return log2(abs(a));}\n`;
-        code += `vec4 sqrtA(vec4 a)        {return sqrt(abs(a));}\n`;
-        code += `vec4 inversesqrtA(vec4 a) {return inversesqrt(abs(a));}\n`;
-        code += `vec4 pow2(vec4 a)         {return a*a;}\n`;
-        code += `vec4 pow3(vec4 a)         {return a*a*a;}\n`;
-        code += `void mainImage(out vec4 a, in vec2 p){\n`;
+        code += `// ZzArt - ${this.GetGenerationString()}\n\n`;
+        if (this.usePalette)
+            code += `vec3 CosinePalette( float t, vec3 a, vec3 b, vec3 c, vec3 d ) { return a + b*cos( 6.28318*(c*t+d)); }\n`;
+        else
+            code += `vec3 SmoothHSV(vec3 c) { vec3 rgb = clamp(abs(mod(c.x*6.+vec3(0,4,2),6.)-3.)-1.,0.,1.); return c.z * mix( vec3(1), rgb*rgb*(3.-2.*rgb), c.y); }\n`
+        code += `vec4 lengthA(vec4 a)      { return vec4(length(a)); }\n`;
+        code += `vec4 asinA(vec4 a)        { return asin(clamp(a,-1.,1.)); }\n`;
+        code += `vec4 acosA(vec4 a)        { return acos(clamp(a,-1.,1.)); }\n`;
+        code += `vec4 logA(vec4 a)         { return log(abs(a)); }\n`;
+        code += `vec4 log2A(vec4 a)        { return log2(abs(a)); }\n`;
+        code += `vec4 sqrtA(vec4 a)        { return sqrt(abs(a)); }\n`;
+        code += `vec4 inversesqrtA(vec4 a) { return inversesqrt(abs(a)); }\n`;
+        code += `vec4 pow2(vec4 a)         { return a*a; }\n`;
+        code += `vec4 pow3(vec4 a)         { return a*a*a; }\n\n`;
+        code += `void mainImage(out vec4 a, in vec2 p)\n{\n`;
         let rotateSwizzle = rotateCanvas^this.rotate? 'yxyx' : 'xyxy';
         code += `a=p.${rotateSwizzle}/iResolution.${rotateSwizzle};\n`;
-        code += `a.xy*=vec2(${uvsx},${uvsy});\n`;
-        code += `a.xy+=vec2(${uvox},${uvoy});\n`;
-        code += `a.wz*=vec2(${uvsx},${uvsy});\n`;
-        code += `a.wz+=vec2(${uvox},${uvoy});\n`;
-        code += `vec4 b=a;\n\n`;
+        code += `a.xy *= vec2(${uvsx}, ${uvsy});\n`;
+        code += `a.xy += vec2(${uvox}, ${uvoy});\n`;
+        code += `a.wz *= vec2(${uvsx}, ${uvsy});\n`;
+        code += `a.wz += vec2(${uvox}, ${uvoy});\n`;
+        code += `vec4 b = a;\n\n`;
         code += `// Generated Code - Line Count: ${this.shaderStatements.length}\n`
         
         if (this.shaderStatements.length == 0)
@@ -513,10 +535,23 @@ class ShaderObject
                 code += `}\n`
         }
         // use hsl color
-        code += `\n// Convert to HSL with Smooth HSV by iq\n`
-        code += `a.x=a.x*${this.hueScale.toFixed(3)}+${this.hueOffset.toFixed(3)};\n`;
-        code += `a.y=a.y*${this.saturationScale.toFixed(3)};\n`;
-        code += `b=clamp(abs(mod(a.x*6.+vec4(0,4,2,1),6.)-3.)-1.,0.,1.);\nb=b*b*(3.-2.*b);\na=a.z*mix(vec4(1),b,a.y);\n`;
+        if (this.usePalette)
+        {
+            code += `\n// Cosine palettes by iq\n`
+            code += `a.x = a.x * ${this.hueScale.toFixed(3)}+${this.hueOffset.toFixed(3)};\n`
+            code += `a.xyz = b.x * CosinePalette(a.x`
+            for(let color of this.paletteColors)
+                code += `,\n ${color.GetShaderCode()}`;
+            code += `);\n`;
+        }
+        else
+        {
+            code += `\n// Smooth HSV by iq\n`
+            code += `a.x *= ${this.hueScale.toFixed(3)}+${this.hueOffset.toFixed(3)};\n`;
+            code += `a.y *= ${this.saturationScale.toFixed(3)};\n`;
+            code += `a.yz = clamp(a.yz,0.,1.0);\n`;
+            code += `a.xyz = SmoothHSV(a.xyz);\n`;
+        }
         code += `}`;
         return code;
     }
@@ -612,10 +647,15 @@ class ShaderStatement
     {
         let parameter = '' + this.parameter;
         if (parameter == '')
-            parameter = `vec4(${this.valueX.toFixed(3)},${this.valueY.toFixed(3)},${this.valueZ.toFixed(3)},${this.valueW.toFixed(3)})`;
+            parameter = `vec4(${this.valueX.toFixed(3)}, ${this.valueY.toFixed(3)}, ${this.valueZ.toFixed(3)}, ${this.valueW.toFixed(3)})`;
          
-        parameter += '.' + this.parameterSwizzle;
-        return this.output + '.' + this.outputSwizzle + this.assignmentOperator + this.functionName + '(' + parameter + ');'
+        let code;
+        code = this.output + '.' + this.outputSwizzle;
+        code += ' ' + this.assignmentOperator + ' ' + this.functionName
+        code += '(' + parameter + ')'
+        code += '.' + this.parameterSwizzle;
+        code += ';';
+        return code;
     }
 }
 
@@ -636,7 +676,7 @@ let shaderRandomizer =
 
         let f =
         [
-            'sin','cos','normalize','length',
+            'sin','cos','normalize','lengthA',
             'tan','asinA','acosA','atan',
             'logA','log2A','exp','exp2',
             'sqrtA','inversesqrtA','fract',
@@ -1181,6 +1221,19 @@ function ShuffleArray(array)
     }
 
     return array;
+}
+    
+class Vector3 
+{
+    constructor(x=0, y=0, z=0) { this.x = x; this.y = y; this.z = z; }
+    Randomize(min, max)
+    { 
+        this.x = RandBetween(min,max); 
+        this.y = RandBetween(min,max); 
+        this.z = RandBetween(min,max); 
+    }
+    
+    GetShaderCode() { return `vec3(${this.x.toFixed(3)}, ${this.y.toFixed(3)}, ${this.z.toFixed(3)})`; }
 }
 
 ///////////////////////////////////////////////////////////////////////  
