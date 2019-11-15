@@ -9,7 +9,7 @@ By Frank Force 2019
 - Shaders can be mutated to create variations.
 - Images can be saved in high resolution.
 - Current favorite is saved in local storage.
-- Art can be bookmarked or shared via url.
+- Art can be bookmarked or shared easily.
 - Satellite mode displays a full preview on a second montor.
 - Shadertoy compatible GLSL code can be downloaded.
 
