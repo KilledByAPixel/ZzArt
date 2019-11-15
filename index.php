@@ -30,7 +30,7 @@ div.satellite
     -webkit-text-stroke-width: 1px; 
     -webkit-text-stroke-color: black; 
 }
-button    
+button, #button_share    
 { 
     margin: 10px; 
     font-size: 30px; 
@@ -75,7 +75,13 @@ button.satellite
 <button id=button_forward disabled onclick=ChangeMemoryLocation(1) title="Redo [X]">►</button>
 <button id=button_save onclick=ButtonSave() title="Save HD Image [S]">💾</button>
 <button id=button_randomize onclick=ButtonRandomize() title="Randomize [R]">🎲</button>
+<!-- old
 <button id=button_share hidden onclick=ButtonShare() title="Copy To Clipboard">📋</button>
+-->
+<form action="./share.php" style="display: inline;" method="POST">
+<input name="parameters" type=text id=share_parameters hidden=""></input>
+<input type=submit id=button_share title="Share" value="🔗"></input>
+</form>
 <button id=button_seed onclick=ButtonSeed() title="Enter Seed">🌱</button>
 <button id=button_openSatellite onclick=ButtonSatellite() title="Open Satellite Preview">📡</button>
 <button id=button_advanced onclick=ButtonAdvanced() title="Advanced Controls">🔧</button>
@@ -130,14 +136,20 @@ let maxIterations = 1;
 let startIterations = 1;
 
 function Init()
-{
-    InitWebgl();
+{    
+	InitWebgl();
     shaderMemory.push(new ShaderObject());
     for(let X=0; X<gridSize; X++)
         shaderGrid[X] = [];
     
     if (!itchMode)
         LoadFromURL();
+	
+	// handle the error
+	if (window.location.href.indexOf("?error") > -1) {
+		alert("There was an error while parsing the data.");
+	}
+	
     LoadLocalStorage();
     
     if (satelliteMode)
@@ -772,7 +784,7 @@ function UpdateUI()
 }
 
 function UpdateURL()
-{
+{		
     let url = GetShareUrl();
     if (url.slice(0,4) == 'http')
     {
@@ -780,6 +792,8 @@ function UpdateURL()
         window.history.replaceState(null,null,url);
         document.title = `ZzArt - ` + shader.GetGenerationString();
     }
+	
+	document.getElementById("share_parameters").value = GetShaderData();
 }
 
 function ChangeMemoryLocation(direction)
@@ -934,22 +948,6 @@ function SaveCode()
     download(favoriteShader.GetCode(), filename, "data:application/octet-stream");
 }
 
-function ButtonShare()
-{
-    const copyToClipboard=s=>
-    {
-        const e = document.createElement('textarea');
-        e.value = s;
-        document.body.appendChild(e);
-        e.select();
-        document.execCommand('copy');
-        document.body.removeChild(e);
-    };
-    
-    copyToClipboard(GetShareUrl());
-    window.alert(`𝓩𝔃𝓐𝓻𝓽 link copied to clipboard!`);
-}
-
 function GetShareUrl()
 {
     let shader = shaderMemory[shaderMemoryLocation];
@@ -959,6 +957,13 @@ function GetShareUrl()
     let url = new URL(window.location.href);
     url.search = search;
     return url.toString();
+}
+
+function GetShaderData()
+{
+    let shader = shaderMemory[shaderMemoryLocation];
+    let jsonShader = JSON.stringify(shader);
+	return jsonShader;
 }
 
 function OpenCapJS()
