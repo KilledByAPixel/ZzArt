@@ -24,7 +24,7 @@ By Frank Force 2019
 - Use the back/forward buttons (X/Z) if you make a mistake.
 - It may take 10 or more stages of evolution to find something really nice.
 - Click 💾 or press S to save an 4K png of your art and share it with tag #zzart
-- You can also bookmark zzart links or use 📋 to copy the link to the clipboard.
+- You can also bookmark zzart links or use the url shortener for faster sharing 🔗
 - Use 📡 to open a preview on your second monitor.
 - You can click 🔧 to show advanced options and view the GLSL code.
 
