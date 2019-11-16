@@ -1115,7 +1115,7 @@ try {
 $files = scandir('data', SCANDIR_SORT_DESCENDING);
 $feed = [];
 $files = array_diff(scandir('data'), array('last', '..', '.')); // filter other files
-if (count($files) > 9) {
+if (count($files) >= $feedLimit) {
     // so it will not break
     $files = array_splice($files, count($files)-$feedLimit, $feedLimit);
 } else {
