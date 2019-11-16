@@ -1105,6 +1105,44 @@ function LoadLocalStorage()
     }
 }
 
+///////////////////////////////////////////////////////////////////////////////
+// SERVER DATA
+
+const feedLimit = <?php $feedLimit = 10; echo $feedLimit; ?>;
+let feed;
+try {
+	feed = <?php 
+$files = scandir('data', SCANDIR_SORT_DESCENDING);
+$feed = [];
+$files = array_diff(scandir('data'), array('last', '..', '.')); // filter other files
+if (count($files) > 9) {
+    // so it will not break
+    $files = array_splice($files, count($files)-$feedLimit, $feedLimit);
+} else {
+    $files = array_splice($files, 0, count($files));
+}
+foreach ($files as $fileName) {
+    // for extra parsing
+    if (is_numeric($fileName)) {
+        array_push($feed, $fileName);
+    }
+}
+
+$feedItems = []; // array with the shader parameters
+foreach ($feed as $feedItem) {
+    $fileData = file_get_contents("./data/$feedItem");
+    $update = substr($fileData, 0, -1); // open the object
+    $update .= ", id: $feedItem}"; // add the file id to the object
+    array_push($feedItems, $update);
+}
+
+echo "[".implode(", ", $feedItems)."]";	
+?>;
+} catch (e) {
+	alert("There was an error when loading the feed data.");
+	feed = [];
+}
+
 ///////////////////////////////////////////////////////////////////////  
 // WEBGL STUFF
 
