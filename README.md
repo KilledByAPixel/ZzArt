@@ -38,3 +38,5 @@ By Frank Force 2019
 ![Example](/examples/6.png)
 ![Example](/examples/7.png)
 ![Example](/examples/8.png)
+
+![ZzFX Image](/favicon.png) 
