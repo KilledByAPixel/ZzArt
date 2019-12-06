@@ -30,14 +30,21 @@ div.satellite
     -webkit-text-stroke-width: 1px; 
     -webkit-text-stroke-color: black; 
 }
-button    
+select
+{
+    background-color: #000; 
+}
+button
 { 
-    margin: 10px; 
     font-size: 30px; 
     vertical-align: middle; 
     text-align: center; 
-    border-radius: 10px;
     background-color: #EEE; 
+    margin: 10px; 
+}
+button.small
+{ 
+    border-radius: 10px;
     height:45px;
 }
 button.satellite
@@ -55,6 +62,11 @@ button.satellite
     height:45px;
     border-radius: 10px;
 }
+input.advanced
+{
+    width:80px;
+    height:20px;
+}
 </style>
 <title>ZzArt - Abstract Art Evolution</title>
 <link rel="shortcut icon" type="image/x-icon" href="favicon.png"/>
@@ -70,16 +82,18 @@ button.satellite
 <center>
 <div id=div_title><font size=5><b>𝓩𝔃𝓐𝓻𝓽</b></font> - <span id=span_generations>0</span></div>
 <div id=buttons_top>
-<button id=button_preview disabled onclick=ButtonTogglePreview() title="Toggle Preview [Spacebar]">🔍</button>
-<button id=button_back disabled onclick=ChangeMemoryLocation(-1) title="Undo [Z]">◄</button>
-<button id=button_forward disabled onclick=ChangeMemoryLocation(1) title="Redo [X]">►</button>
-<button id=button_save onclick=ButtonSave() title="Save HD Image [S]">💾</button>
-<button id=button_randomize onclick=ButtonRandomize() title="Randomize [R]">🎲</button>
-<button id=button_share hidden onclick=ButtonShare() title="Copy To Clipboard">📋</button>
-<button id=button_seed onclick=ButtonSeed() title="Enter Seed">🌱</button>
-<button id=button_openSatellite onclick=ButtonSatellite() title="Open Satellite Preview">📡</button>
-<button id=button_advanced onclick=ButtonAdvanced() title="Advanced Controls">🔧</button>
-<button id=button_help onclick=ButtonHelp() title="Help">❓</button>
+<button class=small id=button_preview disabled onclick=ButtonTogglePreview() title="Toggle Preview [Spacebar]">🔍</button>
+<button class=small id=button_back disabled onclick=ChangeMemoryLocation(-1) title="Undo [Z]">◄</button>
+<button class=small id=button_forward disabled onclick=ChangeMemoryLocation(1) title="Redo [X]">►</button>
+<button class=small id=button_save onclick=ButtonSave() title="Save HD Image [S]">💾</button>
+<button class=small style="display:none;" id=button_saveFolder onclick=DisplaySaveListPage() title="Show Next Save Folder Page">📁</button>
+<button class=small id=button_randomize onclick=ButtonRandomize() title="Randomize [R]">🎲</button>
+<button class=small id=button_share onclick=ButtonShare() title="Copy Link To Clipboard">🔗</button>
+<button class=small style="display:none;" id=button_seed onclick=ButtonSeed() title="Enter Seed">🌱</button>
+<button class=small id=button_openSatellite onclick=ButtonSatellite() title="Open Satellite Preview">📡</button>
+<button class=small id=button_advanced onclick=ButtonAdvanced() title="Advanced Controls">🔧</button>
+<button class=small id=button_help onclick=ButtonHelp() title="Help">❓</button>
+<button class=small style="display:none;" id=button_delete onclick=DeleteSelectedSave() title="Delete Selected Save">␡</button>
 <br></div>
 <canvas id=canvas_main width=1920 height=1080 style="width:1280px; height:720px; border:2px solid black;"></canvas>
 <canvas id=canvas_shader hidden style="width:1280px; height:720px; border:2px solid black;"></canvas>
@@ -89,17 +103,25 @@ button.satellite
 <div id=div_advanced style="display:none;"><hr><table><tr>
 <td>
 <center>Shadertoy Compatible GLSL Code
-<br><textarea disabled id=textarea_code rows=20 cols=80></textarea>
-<br><textarea disabled hidden id=textarea_debug style="color:#F00;" rows=4 cols=160></textarea></center>
-</td>
+<br><textarea disabled id=textarea_code rows=10 cols=80></textarea>
+<br><textarea disabled hidden id=textarea_debug style="color:#F00;" rows=4 cols=160></textarea>
+<br>Base 64 JSON
+<br><textarea disabled id=textarea_json rows=5 cols=80></textarea>
+</center></td>
+<td><center>
+Saved Shaders
+<br><select id=select_saveList onchange=SelectSavedShader(select_saveList.selectedIndex) style="width:350px;overflow:scrollY" size=10></select>
+</center></td>
 <td style='font-size: 20px; line-height: 40px;'><center>
-<input id=checkbox_hideWatermark onclick=UpdateUI() type=checkbox title="Toggle Watermark">Hide Watermark
-<br>Save Canvas Scale: <input type=number id=input_saveScale style='width:50px;height:20px;' value=2>
-<br>Start Iterations: <input type=number id=input_startIterations style='width:50px;height:20px;' value=1>
-<br>Max Iterations: <input type=number id=input_maxIterations style='width:50px;height:20px;' value=5>
-<br>Randomize Length: <input type=number id=input_randomizeLength style='width:50px;height:20px;' value=15>
-<br><button id=button_capjs onclick=OpenCapJS()>Open in CapJS</button>
-<br><button id=button_saveCode onclick=SaveCode()>Save Code</button>
+<input id=checkbox_showWatermark onclick=UpdateUI() type=checkbox title="Toggle Watermark">Show Watermark
+<br>Save Scale: <input type=number id=input_saveScale class=advanced value=2>
+<br>Grid Size: <input type=number onchange=SetGridSize(parseInt(input_gridSize.value)) id=input_gridSize class=advanced value=5>
+<br>Start Iterations: <input type=number id=input_startIterations class=advanced value=1>
+<br>Randomize Length: <input type=number id=input_randomizeLength class=advanced value=15>
+<br><button onclick=OpenCapJS()>Open in CapJS</button>
+<br><button onclick=ExportSaveList()>Export Saves</button>
+<br><button onclick=input_importFile.click()>Import Saves</button><input id=input_importFile type="file" style="display:none">
+<br><button onclick=DeleteSelectedSave()>Delete Selected</button>
 </center></td></tr></table></div>
 </center>
 <a href="https://github.com/KilledByAPixel/ZzArt" target="_blank" class="github-corner" aria-label="View source on GitHub"><svg width="80" height="80" viewBox="0 0 250 250" style="fill:#5AF; color:#222; position: absolute; top: 0; border: 0; right: 0;" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a><style>.github-corner:hover .octo-arm{animation:octocat-wave 560ms ease-in-out}@keyframes octocat-wave{0%,100%{transform:rotate(0)}20%,60%{transform:rotate(-25deg)}40%,80%{transform:rotate(10deg)}}@media (max-width:500px){.github-corner:hover .octo-arm{animation:none}.github-corner .octo-arm{animation:octocat-wave 560ms ease-in-out}}</style>
@@ -123,34 +145,37 @@ let shaderMemoryLocation = 0;
 let showPreview = 0;
 let advancedMode = 0;
 let rotateCanvas = 0;
-let dataVersion = 1;
+let dataVersion = 3;
 let itchMode = 0;
 let satelliteMode = 0;
-let maxIterations = 1;
 let startIterations = 1;
+let uniqueID = 0;
+let isInit = 0;
+let maxIterations = 9;
 
 function Init()
 {
+    isInit = 1;
+
+    uniqueID = RandSeeded();
     InitWebgl();
     shaderMemory.push(new ShaderObject());
-    for(let X=0; X<gridSize; X++)
-        shaderGrid[X] = [];
     
     if (!itchMode)
         LoadFromURL();
     LoadLocalStorage();
+    LoadSavedShaderList();
     
+    for(let i=0; i<gridSize; i++)
+        shaderGrid[i] = [];
+        
     if (satelliteMode)
         InitSatelliteMode();
     else
     {
         if (favoriteShader)
-        {
             shaderMemory[shaderMemoryLocation] = favoriteShader;
-            SetFavoriteFromMemory();
-        }
-        else
-            RandomizeShaders();
+        SetFavoriteFromMemory();
             
         if (!itchMode && IsMobile())
             TryToRotate();
@@ -158,6 +183,7 @@ function Init()
         DrawShaders();
         UpdateUI();
     }
+    isInit = 0;
 }
 
 function InitSatelliteMode()
@@ -178,18 +204,19 @@ function InitSatelliteMode()
     div_title.style.display = 'none';
     div_satellite.style.display = 'inline';
     
-    UpdateSatelliteMode();
+    favoriteShader.Render();
     setInterval(UpdateSatelliteMode, 100);
 }
 
 function UpdateSatelliteMode()
 { 
     // continuous poll favorite from local storage
-    let localStorageItem = localStorage.getItem('favorite');
+    let localStorageItem = localStorage.saveData;
     if (localStorageItem)
     {
-        let rawObject = JSON.parse(localStorageItem);
-        if (rawObject.randSeed != favoriteShader.randSeed)
+        let saveData = JSON.parse(localStorage.saveData);
+        let rawObject = saveData.favorite;
+        if (rawObject.uniqueID != favoriteShader.uniqueID)
         {
             // redraw new favorite
             favoriteShader = Object.assign(new ShaderObject(), rawObject).Clone();
@@ -221,8 +248,7 @@ function TryToRotate()
 
 function RandomizeShaders()
 {
-    SaveLocalStorage();
-    
+    saveListIndex = 0;
     favoriteShader = new ShaderObject();
     for(let i=9;i--;) Rand(); // warm up random number generator
     
@@ -300,7 +326,9 @@ function SetBest(bestX, bestY)
 
 function MakeVariations(skipX, skipY)
 {
+    saveListIndex = 0;
     textarea_code.value = favoriteShader.GetCode();
+    textarea_json.value = btoa(JSON.stringify(favoriteShader));
         
     for(let X=0; X<gridSize; X++)
     for(let Y=0; Y<gridSize; Y++)
@@ -315,6 +343,12 @@ function MakeVariations(skipX, skipY)
 
 function SetFavoriteFromMemory()
 {
+    if (!favoriteShader)
+    {
+        RandomizeShaders();
+        return;
+    }
+
     favoriteShader = shaderMemory[shaderMemoryLocation];
     randSeed = favoriteShader.randSeed;
     randSeedString = favoriteShader.randSeedString;
@@ -329,6 +363,11 @@ function SetFavoriteFromMemory()
         
         shaderGrid[X][Y] = favoriteShader.Clone();
         MakeVariations(X, Y);
+    }
+    else if (favoriteShader.IsSaveList())
+    {
+        saveListIndex = favoriteShader.saveListIndex;
+        DisplaySaveListPage(0);
     }
     else
         RandomizeShaders();
@@ -361,14 +400,30 @@ class ShaderObject
         this.rotate = 0;
         this.usePalette = 0;
         this.paletteColors = [new Vector3(), new Vector3(), new Vector3(), new Vector3()];
+        this.saveListIndex = -1;
+        this.uniqueID=++uniqueID;
     }
     
     SetGridPos(X,Y) { this.gridPosX = X; this.gridPosY = Y; }
     IsVariation() { return this.gridPosX >= 0; }
+    IsSaveList() { return this.saveListIndex >= 0; };
+    
+    MakeAllObjectFloatsFixed(object, digits=3)
+    {
+        // keep floats small
+        for (let key in object)
+        {
+            let subObject = object[key];
+            if (typeof subObject === 'object')
+                this.MakeAllObjectFloatsFixed(subObject)
+            else if (typeof subObject === 'number')
+                object[key] = parseFloat(subObject.toFixed(digits));
+        }
+    }
     
     Randomize()
     {
-        let statementCount = input_randomizeLength.value;
+        let statementCount = parseInt(input_randomizeLength.value);
         if (statementCount <0)
             statementCount = 0;
         
@@ -393,6 +448,8 @@ class ShaderObject
         
         for(let color of this.paletteColors)
             color.Randomize(0,1);
+            
+        this.MakeAllObjectFloatsFixed(this);
     }
     
     Clone() 
@@ -404,11 +461,15 @@ class ShaderObject
         clone.paletteColors = [];
         for(let color of this.paletteColors)
             clone.paletteColors.push(Object.assign(new Vector3(), color));
+            
+        // fix old shaders that had too high iterations
+        clone.iterationCount = Clamp(parseInt(clone.iterationCount),1,maxIterations);
         return clone;
     }
     
     Mutate() 
     {   
+        this.uniqueID = RandSeeded();
         this.subGeneration = 0;
         ++this.generation;
         
@@ -487,7 +548,8 @@ class ShaderObject
             
         if (Rand() < .1)
             this.iterationCount += RandInt(3)-1;
-        this.iterationCount = Clamp(this.iterationCount, 1, maxIterations);
+            
+        this.MakeAllObjectFloatsFixed(this);
     }
     
     GetCode() 
@@ -517,10 +579,8 @@ class ShaderObject
         code += `void mainImage(out vec4 a, in vec2 p)\n{\n`;
         let rotateSwizzle = rotateCanvas^this.rotate? 'yxyx' : 'xyxy';
         code += `a=p.${rotateSwizzle}/iResolution.${rotateSwizzle};\n`;
-        code += `a.xy *= vec2(${uvsx}, ${uvsy});\n`;
-        code += `a.xy += vec2(${uvox}, ${uvoy});\n`;
-        code += `a.wz *= vec2(${uvsx}, ${uvsy});\n`;
-        code += `a.wz += vec2(${uvox}, ${uvoy});\n`;
+        code += `a.xywz *= vec2(${uvsx}, ${uvsy}).xyxy;\n`;
+        code += `a.xywz += vec2(${uvox}, ${uvoy}).xyxy;\n`;
         code += `vec4 b = a;\n\n`;
         code += `// Generated Code - Line Count: ${this.shaderStatements.length}\n`
         
@@ -550,7 +610,6 @@ class ShaderObject
             code += `\n// Smooth HSV by iq\n`
             code += `a.x *= ${this.hueScale.toFixed(3)}+${this.hueOffset.toFixed(3)};\n`;
             code += `a.y *= ${this.saturationScale.toFixed(3)};\n`;
-            code += `a.yz = clamp(a.yz,0.,1.0);\n`;
             code += `a.xyz = SmoothHSV(a.xyz);\n`;
         }
         code += `}`;
@@ -566,6 +625,12 @@ class ShaderObject
     GetGenerationString(shorten)
     {
         let string = ''
+        
+        if (this.IsSaveList())
+        {
+            let page = 1+this.saveListIndex / (gridSize*gridSize)|0; 
+            return 'Favorites Page: ' + page;
+        }
         
         let seed = this.randSeedString?this.randSeedString:this.randSeed;
         if (shorten)
@@ -720,20 +785,44 @@ let shaderRandomizer =
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////
 // USER INTERFACE
 
-function UpdateUI()
+function SetGridSize(newGridSize)
+{
+    gridSize = Clamp(newGridSize,2,10);
+    shaderGrid=[];
+    for(let i=0; i<gridSize; i++)
+        shaderGrid[i] = [];
+    
+    SetFavoriteFromMemory();
+    DrawShaders();
+    UpdateUI();
+}
+
+function UpdateUI(resetSaveListSelection=1)
 {
     if (satelliteMode)
         return;
 
-    maxIterations = Clamp(input_maxIterations.value, 1, 9);
-    startIterations = Clamp(input_startIterations.value, 1, maxIterations);
+    if (!isInit)
+    {
+        // clear url
+        let url = new URL(window.location.href);
+        url.search= "";
+        window.history.pushState(null,null,url.toString());
+    }
+
+    if (resetSaveListSelection)
+        select_saveList.selectedIndex=-1;
+    startIterations = Clamp(parseInt(input_startIterations.value), 1, maxIterations);
     button_back.disabled = shaderMemoryLocation <= 0;
     button_forward.disabled = shaderMemoryLocation >= shaderMemory.length-1;
     button_preview.disabled = !favoriteShader || favoriteShader.gridPosX<0;
     canvas_main.hidden = showPreview;
     canvas_shader.hidden = !showPreview;
-    div_advanced.style.display = advancedMode? "inline" : "none";
+    div_advanced.style.display = advancedMode? 'inline' : 'none';
+    button_delete.style.display = advancedMode? 'inline' : 'none';
+    button_help.style.display = advancedMode? 'none' : 'inline';
     textarea_debug.hidden = textarea_debug.value == '';
+    button_saveFolder.style.display = saveList.length==0? 'none' : 'inline';
     
     let s = shaderMemory[shaderMemoryLocation];
     span_generations.innerHTML = s.GetGenerationString();
@@ -743,11 +832,16 @@ function UpdateUI()
     {
         if (!itchMode)
             button_help.style.display = 'none';
+        button_seed.style.display = 'inline';
         button_advanced.style.display = 'none';
         button_share.style.display = 'none';
         div_credit.style.display = 'none';
         button_openSatellite.style.display = 'none';
     }
+    
+    // set title
+    let shader = shaderMemory[shaderMemoryLocation];
+    document.title = `ZzArt - ` + shader.GetGenerationString();
     
     // resize canvas to fit window
     let a = canvas_main.width / canvas_main.height;
@@ -767,20 +861,6 @@ function UpdateUI()
     canvas_shader.style.height=h+'px';
 
     SaveLocalStorage();
-    
-    if (!itchMode)
-        UpdateURL();
-}
-
-function UpdateURL()
-{
-    let url = GetShareUrl();
-    if (url.slice(0,4) == 'http')
-    {
-        let shader = shaderMemory[shaderMemoryLocation];
-        window.history.replaceState(null,null,url);
-        document.title = `ZzArt - ` + shader.GetGenerationString();
-    }
 }
 
 function ChangeMemoryLocation(direction)
@@ -893,26 +973,30 @@ function ButtonSave()
     if (!favoriteShader)
         return;
 
+    AddToSaveList(favoriteShader);
+
     // save large
-    let scale = input_saveScale.value;
-    if (scale <= 0)
-        scale = 1;
-    canvas_shader.width = scale*canvas_main.width;
-    canvas_shader.height = scale*canvas_main.height;
+    let saveScale = parseInt(input_saveScale.value);
+    if (saveScale <= 0)
+        return;
+    canvas_shader.width = saveScale*defaultCanvasWidth;
+    canvas_shader.height = saveScale*defaultCanvasHeight;
     favoriteShader.Render();
 
-    canvas_save.width = canvas_shader.width;
-    canvas_save.height = canvas_shader.height;
+    let canvas = canvas_shader;
 
-    let x = canvasContext_save;
-    x.drawImage(canvas_shader, 0, 0);
-    
-    if (!checkbox_hideWatermark.checked)
+    if (checkbox_showWatermark.checked)
     {
+        canvas = canvas_save;
+        canvas.width = canvas_shader.width;
+        canvas.height = canvas_shader.height;
+        let x = canvasContext_save;
+        x.drawImage(canvas_shader, 0, 0);
+
         // watermark
         let watermarkText = `𝓩𝔃𝓐𝓻𝓽 ~ ${favoriteShader.GetGenerationString()} ~ zzart.3d2k.com`;
-        let X = canvas_save.width-10;
-        let Y = canvas_save.height-10;
+        let X = canvas.width-10;
+        let Y = canvas.height-10;
         x.textAlign='right';
         x.shadowBlur = 6;
         x.shadowColor = '#0009';
@@ -926,7 +1010,8 @@ function ButtonSave()
     }
     
     let filename = 'ZzArt-' + favoriteShader.GetGenerationString(1) + ".png";
-    download(canvas_save.toDataURL("image/png"), filename,"image/png");
+    download(canvas.toDataURL("image/png"), filename,"image/png");
+    UpdateUI();
 }
 
 function SaveCode()
@@ -937,26 +1022,18 @@ function SaveCode()
 
 function ButtonShare()
 {
-    const copyToClipboard=s=>
-    {
-        const e = document.createElement('textarea');
-        e.value = s;
-        document.body.appendChild(e);
-        e.select();
-        document.execCommand('copy');
-        document.body.removeChild(e);
-    };
-    
-    copyToClipboard(GetShareUrl());
-    window.alert(`𝓩𝔃𝓐𝓻𝓽 link copied to clipboard!`);
+    window.open(GetShareUrl());
 }
 
 function GetShareUrl()
 {
-    let shader = shaderMemory[shaderMemoryLocation];
-    let search = "";
-    let jsonShader = JSON.stringify(shader);
-    search += "&shader=" + encodeURIComponent(jsonShader);
+    let shader = shaderMemory[shaderMemoryLocation].Clone();
+    shader.MakeAllObjectFloatsFixed(shader, 5);
+    let crushed = JSONCrush(shader);
+    
+    let search = '';
+    //search += "&shader=" + encodeURIComponent(jsonShader);
+    search += "&crushed=" + crushed;
     let url = new URL(window.location.href);
     url.search = search;
     return url.toString();
@@ -1051,11 +1128,12 @@ function LoadFromURL()
         let rawObject = JSON.parse(shaderText);
         favoriteShader = Object.assign(new ShaderObject(), rawObject).Clone();
     }
-    
-    if (IsMobile() && window.history)
+    else if (searchParams.has('crushed'))
     {
-        url.search= "";
-        window.history.pushState(null,null,url.toString())
+        // uncrush
+        let crushedString = searchParams.get('crushed');
+        let rawObject = JSONUncrush(crushedString);
+        favoriteShader = Object.assign(new ShaderObject(), rawObject).Clone();
     }
     
     if (!IsMobile() && !itchMode && searchParams.has('satellite'))
@@ -1066,39 +1144,39 @@ function SaveLocalStorage()
 {
     if (satelliteMode)
         return;
-
-    localStorage.version = dataVersion;
+        
     let shader = shaderMemory[shaderMemoryLocation];
-    localStorage.setItem('favorite', JSON.stringify(shader));
-    localStorage.setItem('hideWatermark', checkbox_hideWatermark.checked?1:0);
-    //localStorage.setItem('advancedMode', advancedMode?1:0);
-    localStorage.setItem('saveScale', input_saveScale.value);
+    let saveData = 
+    {
+        version:dataVersion,
+        showWatermark:checkbox_showWatermark.checked,
+        advancedMode:advancedMode,
+        //saveScale:input_saveScale.value,
+        //startIterations:input_startIterations.value,
+        //randomizeLength:input_randomizeLength.value,
+        gridSize:gridSize,
+        favorite:shader
+    }
+        
+    localStorage.version = dataVersion;
+    localStorage.saveData = JSON.stringify(saveData);
 }
 
 function LoadLocalStorage()
 {
     if (localStorage.version != dataVersion)
         return;
-
-    let localStorageItem;
-    localStorageItem = localStorage.getItem('hideWatermark');
-    if (localStorageItem)
-        checkbox_hideWatermark.checked = parseInt(localStorageItem);
+        
+    let saveData = JSON.parse(localStorage.saveData);
+    checkbox_showWatermark.checked = saveData.showWatermark;
+    advancedMode = saveData.advancedMode;
+    input_gridSize.value = gridSize = saveData.gridSize;
+    //input_saveScale.value = saveData.saveScale;
+    //input_startIterations.value = saveData.startIterations;
+    //input_randomizeLength.value = saveData.randomizeLength;
     
-    //localStorageItem = localStorage.getItem('advancedMode');
-    //if (localStorageItem)
-    //    advancedMode = parseInt(localStorageItem);
-    
-    localStorageItem = localStorage.getItem('saveScale');
-    if (localStorageItem)
-        input_saveScale.value = parseFloat(localStorageItem);
-         
-    localStorageItem = localStorage.getItem('favorite');
-    if (localStorageItem && !favoriteShader)
-    {
-        let rawObject = JSON.parse(localStorageItem);
-        favoriteShader = Object.assign(new ShaderObject(), rawObject).Clone();
-    }
+    let rawObject = saveData.favorite;
+    favoriteShader = Object.assign(new ShaderObject(), rawObject).Clone();
 }
 
 ///////////////////////////////////////////////////////////////////////  
@@ -1177,6 +1255,198 @@ function RenderShader(code)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
+// IMPORT/EXPORT AND SAVE LIST
+
+let saveList = [];
+let saveListIndex = 0;
+
+function LoadSavedShaderList()
+{
+    saveList = [];
+    let savedShaderCount = localStorage.savedShaderCount;
+    if (!savedShaderCount)
+    {
+        savedShaderCount = 0;
+        return;
+    }
+    for(let i=0;i<savedShaderCount;++i)
+    {
+        let rawObject = localStorage['savedShader_'+i];
+        if (!rawObject)
+            continue;
+            
+        rawObject = JSON.parse(rawObject);
+        let shader = Object.assign(new ShaderObject(), rawObject).Clone();
+        AddToSaveList(shader, 0);
+    }
+}
+
+function SaveShaderList()
+{
+    let i=0;
+    localStorage.savedShaderCount = saveList.length;
+    for(let shader of saveList)
+    {
+        localStorage['savedShader_'+i] = JSON.stringify(shader);
+        ++i;
+    }
+}
+
+function SelectSavedShader(i)
+{
+    i = parseInt(i);
+    if (i >= saveList.length)
+        return;
+ 
+    if (saveList[i].IsSaveList())
+        return;
+ 
+    saveListIndex = i;
+    shaderMemoryLocation = shaderMemory.length;
+    let shader = saveList[i].Clone();
+    shader.gridPosX = 0;
+    shader.gridPosY = 0;
+    shaderMemory[shaderMemoryLocation] = shader;
+    SetFavoriteFromMemory();
+    
+    DrawShaders();
+    UpdateUI(0);
+}
+
+function AddToSaveList(shader, save=1)
+{
+    // check if duplicate
+    let matches = saveList.filter(savedShader => savedShader.uniqueID == shader.uniqueID);
+    if (matches.length)
+        return;
+
+    let i = saveList.length;
+    let option = document.createElement('option');
+    option.value = i;
+    option.innerHTML = shader.GetGenerationString(1);
+    select_saveList.appendChild(option);
+    saveList.push(shader.Clone());
+    if (save)
+    {
+        localStorage['savedShader_'+i] = JSON.stringify(shader);
+        localStorage.savedShaderCount = saveList.length;
+    }
+}
+
+function DeleteSelectedSave()
+{
+    let options = select_saveList.getElementsByTagName('option');
+    let i = select_saveList.selectedIndex;
+    if (i < 0 || i >= options.length)
+    {
+        // check if current favorite
+        i = 0;
+        for (let shader of saveList)
+        {
+            if (shader.uniqueID == favoriteShader.uniqueID)
+                break;
+                
+            ++i;
+        }
+        
+        if (i == saveList.length)
+            return;
+    }
+    
+    saveList.splice(i, 1);
+    options[i].remove();
+    SaveShaderList();
+    UpdateUI();
+}
+
+function ExportSaveList()
+{
+    let filename = 'zzart_export.txt';
+    let output = '';
+    let i = 0;
+    for (let shader of saveList)
+        output += JSON.stringify(shader) + '\n';
+    
+    download(output, filename, "data:application/octet-stream");
+}
+
+input_importFile.onchange=e=> { ImportSaveList(e.target.files[0]); }
+
+function ImportSaveList(file)
+{
+    if (file.type != "text/plain")
+        return;
+        
+    let reader = new FileReader();
+    reader.readAsText(file,'UTF-8');
+    reader.onload=readerEvent=>
+    {
+        saveList = [];
+        saveListIndex = 0;
+        select_saveList.options.length = 0;
+            
+        let content = readerEvent.target.result;
+        let jsonLines = content.split('\n');
+        for (let line of jsonLines)
+        {
+            try
+            {
+                let jsonShader = JSON.parse(line);
+                let shader = Object.assign(new ShaderObject(), jsonShader).Clone();
+                AddToSaveList(shader, 0);
+            }
+            catch (e) 
+            {
+                break;
+            }
+        }
+        
+        SaveShaderList();
+        DisplaySaveListPage(0);
+        
+        shaderMemoryLocation=0;
+        shaderMemory.length = shaderMemoryLocation;
+        shaderMemory.push(favoriteShader.Clone());
+        UpdateUI();
+    }
+}
+
+function DisplaySaveListPage(saveMemory=1)
+{
+    showPreview = 0;
+    favoriteShader = new ShaderObject();
+    favoriteShader.saveListIndex = saveListIndex;
+    let shader = favoriteShader;
+    
+    if (saveMemory)
+    {
+        ++shaderMemoryLocation;
+        shaderMemory.length = shaderMemoryLocation;
+        shaderMemory.push(shader.Clone());
+    }
+    
+    for(let Y=0; Y<gridSize; Y++)
+    for(let X=0; X<gridSize; X++)
+    {
+        let shader = new ShaderObject();
+        
+        let i = saveListIndex;
+        ++saveListIndex;
+        
+        if (i < saveList.length)
+            shader = saveList[i].Clone();
+        shaderGrid[X][Y] = shader;
+        shader.SetGridPos(X,Y);
+    }
+    
+    if (saveListIndex >= saveList.length)
+        saveListIndex = 0;
+
+    DrawShaders();
+    UpdateUI();
+}
+
+///////////////////////////////////////////////////////////////////////////////
 // MATH STUFF
 
 let randSeedString = '';
@@ -1242,9 +1512,107 @@ class Vector3
 let IsMobile=_=>!itchMode&&((navigator.userAgent.match(/Android/i) || navigator.userAgent.match(/webOS/i) || navigator.userAgent.match(/iPhone/i) || navigator.userAgent.match(/iPad/i) || navigator.userAgent.match(/iPod/i) || navigator.userAgent.match(/BlackBerry/i) || navigator.userAgent.match(/Windows Phone/i))!= null);
 
 ///////////////////////////////////////////////////////////////////////  
-
 //download.js v4.21, by dandavis; 2008-2018. [MIT] see http://danml.com/download.html for tests/usage
+
 ;(function(root,factory){typeof define=="function"&&define.amd?define([],factory):typeof exports=="object"?module.exports=factory():root.download=factory()})(this,function(){return function download(data,strFileName,strMimeType){let self=window,defaultMime="application/octet-stream",mimeType=strMimeType||defaultMime,payload=data,url=!strFileName&&!strMimeType&&payload,anchor=document.createElement("a"),toString=function(a){return String(a)},myBlob=self.Blob||self.MozBlob||self.WebKitBlob||toString,fileName=strFileName||"download",blob,reader;myBlob=myBlob.call?myBlob.bind(self):Blob,String(this)==="true"&&(payload=[payload,mimeType],mimeType=payload[0],payload=payload[1]);if(url&&url.length<2048){fileName=url.split("/").pop().split("?")[0],anchor.href=url;if(anchor.href.indexOf(url)!==-1){let ajax=new XMLHttpRequest;return ajax.open("GET",url,!0),ajax.responseType="blob",ajax.onload=function(e){download(e.target.response,fileName,defaultMime)},setTimeout(function(){ajax.send()},0),ajax}}if(/^data:([\w+-]+\/[\w+.-]+)?[,;]/.test(payload)){if(!(payload.length>2096103.424&&myBlob!==toString))return navigator.msSaveBlob?navigator.msSaveBlob(dataUrlToBlob(payload),fileName):saver(payload);payload=dataUrlToBlob(payload),mimeType=payload.type||defaultMime}else if(/([\x80-\xff])/.test(payload)){let i=0,tempUiArr=new Uint8Array(payload.length),mx=tempUiArr.length;for(i;i<mx;++i)tempUiArr[i]=payload.charCodeAt(i);payload=new myBlob([tempUiArr],{type:mimeType})}blob=payload instanceof myBlob?payload:new myBlob([payload],{type:mimeType});function dataUrlToBlob(strUrl){let parts=strUrl.split(/[:;,]/),type=parts[1],indexDecoder=strUrl.indexOf("charset")>0?3:2,decoder=parts[indexDecoder]=="base64"?atob:decodeURIComponent,binData=decoder(parts.pop()),mx=binData.length,i=0,uiArr=new Uint8Array(mx);for(i;i<mx;++i)uiArr[i]=binData.charCodeAt(i);return new myBlob([uiArr],{type:type})}function saver(url,winMode){if("download"in anchor)return anchor.href=url,anchor.setAttribute("download",fileName),anchor.className="download-js-link",anchor.innerHTML="downloading...",anchor.style.display="none",anchor.addEventListener("click",function(e){e.stopPropagation()}),document.body.appendChild(anchor),setTimeout(function(){anchor.click(),document.body.removeChild(anchor),winMode===!0&&setTimeout(function(){self.URL.revokeObjectURL(anchor.href)},250)},66),!0;if(/(Version)\/(\d+)\.(\d+)(?:\.(\d+))?.*Safari\//.test(navigator.userAgent))return/^data:/.test(url)&&(url="data:"+url.replace(/^data:([\w\/\-\+]+)/,defaultMime)),window.open(url)||confirm("Displaying New Document\n\nUse Save As... to download, then click back to return to this page.")&&(location.href=url),!0;let f=document.createElement("iframe");document.body.appendChild(f),!winMode&&/^data:/.test(url)&&(url="data:"+url.replace(/^data:([\w\/\-\+]+)/,defaultMime)),f.src=url,setTimeout(function(){document.body.removeChild(f)},333)}if(navigator.msSaveBlob)return navigator.msSaveBlob(blob,fileName);if(self.URL)saver(self.URL.createObjectURL(blob),!0);else{if(typeof blob=="string"||blob.constructor===toString)try{return saver("data:"+mimeType+";base64,"+self.btoa(blob))}catch(y){return saver("data:"+mimeType+","+encodeURIComponent(blob))}reader=new FileReader,reader.onload=function(e){saver(this.result)},reader.readAsDataURL(blob)}return!0}});
+
+/////////////////////////////////////////////////////////////////////// 
+// JSONCrush by Frank Force [MIT] https://github.com/KilledByAPixel/JSONCrush
+// Based on Javascript crusher by @aivopaas. [MIT] http://www.iteral.com/jscrush
+
+let JSONCrush = function(object)
+{
+    let X, B, O, m, i, c, e, N, M, o, t, j, x, R;
+    
+    let Q=[];
+    let safeChars = `-_.!~*'()`; // unescaped by encode uri component
+    for (i=127;--i;)((i>=65&&i<=90)||(i>=97&&i<=122)||(i>=48&&i<=57)||safeChars.includes(String.fromCharCode(i)))&&Q.push(String.fromCharCode(i));
+    
+    let s = JSON.stringify(object);
+    s = s.replace(/\u0001/g,'');
+    s = JSONCrushSwap(s);
+    
+    X=B=s.length/2
+    O=m='';
+    
+    for(let S=encodeURI(i).replace(/%../g,'i').length;;m=c+m)
+    {
+		for(M=N=e=c=0,i=Q.length;!c&&--i;)!~s.indexOf(Q[i])&&(c=Q[i]);
+		if(!c)break;
+		if(O)
+        {
+			o={};
+			for(x in O)
+				for(j=s.indexOf(x),o[x]=0;~j;o[x]++)j=s.indexOf(x,j+x.length);
+			O=o;
+		}
+        else for(O=o={},t=1;X;t++)
+				for(X=i=0;++i<s.length-t;)
+					if(!o[x=s.substr(j=i,t)])
+						if(~(j=s.indexOf(x,j+t)))
+							for(X=t,o[x]=1;~j;o[x]++)j=s.indexOf(x,j+t);
+		for(let x in O) 
+        {
+			j=encodeURI(x).replace(/%../g,'i').length;
+			if(j=(R=O[x])*j-j-(R+1)*encodeURI(c).replace(/%../g,'i').length)
+				(j>M||j==M&&R>N)&&(M=j,N=R,e=x);
+			if(j<1)
+				delete O[x]
+		}
+		o={};
+		for(let x in O)
+			o[x.split(e).join(c)]=1;
+		O=o;
+		if(!e)break;
+		s=s.split(e).join(c)+c+e
+	}
+    
+    let crushed = s + '\u0001' + m;
+    return encodeURIComponent(crushed);
+}
+
+let JSONUncrush = function(string)
+{
+    let c = string.split('\u0001');
+    let a = c[0];
+    let b = c[1];
+    for(let c in b)
+    {
+        let d = a.split(b[c]);
+        a=d.join(d.pop());
+    }
+    
+    let uncrushed = JSONCrushSwap(a, 0);
+    return JSON.parse(uncrushed);
+}
+
+let JSONCrushSwap = function(string, forward=true)
+{
+    function Swap(string, g)
+    {
+        let regex = new RegExp(`${(g[2]?g[2]:'')+g[0]}|${(g[3]?g[3]:'')+g[1]}`,'g');
+        return string.replace(regex, $1 => ( $1 === g[0] ? g[1] : g[0] ));
+    }
+
+    // swap out characters for lesser used ones that wont get escaped
+    let swapGroups = 
+    [
+        ['"', "'"],
+        ["':", "!"],
+        [",'", "~"],
+        ['}', ")", '\\', '\\'],
+        ['{', "(", '\\', '\\'],
+    ];
+    
+    if (forward)
+        for (let i=0; i<swapGroups.length;++i)
+            string = Swap(string, swapGroups[i]);
+    else
+        for (let i=swapGroups.length; i--;)
+            string = Swap(string, swapGroups[i]);
+        
+    return string;
+}
 
 ///////////////////////////////////////////////////////////////////////  
 
