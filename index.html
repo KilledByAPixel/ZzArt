@@ -608,7 +608,7 @@ class ShaderObject
         else
         {
             code += `\n// Smooth HSV by iq\n`
-            code += `a.x *= ${this.hueScale.toFixed(3)}+${this.hueOffset.toFixed(3)};\n`;
+            code += `a.x = a.x * ${this.hueScale.toFixed(3)}+${this.hueOffset.toFixed(3)};\n`;
             code += `a.y *= ${this.saturationScale.toFixed(3)};\n`;
             code += `a.xyz = SmoothHSV(a.xyz);\n`;
         }
