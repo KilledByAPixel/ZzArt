@@ -8,6 +8,19 @@ code credits
 - Smooth HSV by iq - https://www.shadertoy.com/view/MsS3Wc
 - github-corners by Tim Holman - https://github.com/tholman/github-corners
 
+
+todo
+- poster option
+- resolution
+- 2x3 resolution
+- background color
+- margin
+- line around image
+- dpi
+- color change button
+- black and white
+- scale variation button
+
 -->
 
 <!doctype html>
@@ -1029,7 +1042,7 @@ function GetShareUrl()
 {
     let shader = shaderMemory[shaderMemoryLocation].Clone();
     shader.MakeAllObjectFloatsFixed(shader, 5);
-    let crushed = JSONCrush(shader);
+    let crushed = JSONCrush(JSON.stringify(shader));
     
     let search = '';
     //search += "&shader=" + encodeURIComponent(jsonShader);
@@ -1132,7 +1145,7 @@ function LoadFromURL()
     {
         // uncrush
         let crushedString = searchParams.get('crushed');
-        let rawObject = JSONUncrush(crushedString);
+        let rawObject = JSON.parse(JSONUncrush(crushedString));
         favoriteShader = Object.assign(new ShaderObject(), rawObject).Clone();
     }
     
@@ -1516,103 +1529,11 @@ let IsMobile=_=>!itchMode&&((navigator.userAgent.match(/Android/i) || navigator.
 
 ;(function(root,factory){typeof define=="function"&&define.amd?define([],factory):typeof exports=="object"?module.exports=factory():root.download=factory()})(this,function(){return function download(data,strFileName,strMimeType){let self=window,defaultMime="application/octet-stream",mimeType=strMimeType||defaultMime,payload=data,url=!strFileName&&!strMimeType&&payload,anchor=document.createElement("a"),toString=function(a){return String(a)},myBlob=self.Blob||self.MozBlob||self.WebKitBlob||toString,fileName=strFileName||"download",blob,reader;myBlob=myBlob.call?myBlob.bind(self):Blob,String(this)==="true"&&(payload=[payload,mimeType],mimeType=payload[0],payload=payload[1]);if(url&&url.length<2048){fileName=url.split("/").pop().split("?")[0],anchor.href=url;if(anchor.href.indexOf(url)!==-1){let ajax=new XMLHttpRequest;return ajax.open("GET",url,!0),ajax.responseType="blob",ajax.onload=function(e){download(e.target.response,fileName,defaultMime)},setTimeout(function(){ajax.send()},0),ajax}}if(/^data:([\w+-]+\/[\w+.-]+)?[,;]/.test(payload)){if(!(payload.length>2096103.424&&myBlob!==toString))return navigator.msSaveBlob?navigator.msSaveBlob(dataUrlToBlob(payload),fileName):saver(payload);payload=dataUrlToBlob(payload),mimeType=payload.type||defaultMime}else if(/([\x80-\xff])/.test(payload)){let i=0,tempUiArr=new Uint8Array(payload.length),mx=tempUiArr.length;for(i;i<mx;++i)tempUiArr[i]=payload.charCodeAt(i);payload=new myBlob([tempUiArr],{type:mimeType})}blob=payload instanceof myBlob?payload:new myBlob([payload],{type:mimeType});function dataUrlToBlob(strUrl){let parts=strUrl.split(/[:;,]/),type=parts[1],indexDecoder=strUrl.indexOf("charset")>0?3:2,decoder=parts[indexDecoder]=="base64"?atob:decodeURIComponent,binData=decoder(parts.pop()),mx=binData.length,i=0,uiArr=new Uint8Array(mx);for(i;i<mx;++i)uiArr[i]=binData.charCodeAt(i);return new myBlob([uiArr],{type:type})}function saver(url,winMode){if("download"in anchor)return anchor.href=url,anchor.setAttribute("download",fileName),anchor.className="download-js-link",anchor.innerHTML="downloading...",anchor.style.display="none",anchor.addEventListener("click",function(e){e.stopPropagation()}),document.body.appendChild(anchor),setTimeout(function(){anchor.click(),document.body.removeChild(anchor),winMode===!0&&setTimeout(function(){self.URL.revokeObjectURL(anchor.href)},250)},66),!0;if(/(Version)\/(\d+)\.(\d+)(?:\.(\d+))?.*Safari\//.test(navigator.userAgent))return/^data:/.test(url)&&(url="data:"+url.replace(/^data:([\w\/\-\+]+)/,defaultMime)),window.open(url)||confirm("Displaying New Document\n\nUse Save As... to download, then click back to return to this page.")&&(location.href=url),!0;let f=document.createElement("iframe");document.body.appendChild(f),!winMode&&/^data:/.test(url)&&(url="data:"+url.replace(/^data:([\w\/\-\+]+)/,defaultMime)),f.src=url,setTimeout(function(){document.body.removeChild(f)},333)}if(navigator.msSaveBlob)return navigator.msSaveBlob(blob,fileName);if(self.URL)saver(self.URL.createObjectURL(blob),!0);else{if(typeof blob=="string"||blob.constructor===toString)try{return saver("data:"+mimeType+";base64,"+self.btoa(blob))}catch(y){return saver("data:"+mimeType+","+encodeURIComponent(blob))}reader=new FileReader,reader.onload=function(e){saver(this.result)},reader.readAsDataURL(blob)}return!0}});
 
-/////////////////////////////////////////////////////////////////////// 
+///////////////////////////////////////////////////////////////////////  
+// JSON Crush by Frank Force https://github.com/KilledByAPixel/JSONCrush
+
 // JSONCrush by Frank Force [MIT] https://github.com/KilledByAPixel/JSONCrush
-// Based on Javascript crusher by @aivopaas. [MIT] http://www.iteral.com/jscrush
-
-let JSONCrush = function(object)
-{
-    let X, B, O, m, i, c, e, N, M, o, t, j, x, R;
-    
-    let Q=[];
-    let safeChars = `-_.!~*'()`; // unescaped by encode uri component
-    for (i=127;--i;)((i>=65&&i<=90)||(i>=97&&i<=122)||(i>=48&&i<=57)||safeChars.includes(String.fromCharCode(i)))&&Q.push(String.fromCharCode(i));
-    
-    let s = JSON.stringify(object);
-    s = s.replace(/\u0001/g,'');
-    s = JSONCrushSwap(s);
-    
-    X=B=s.length/2
-    O=m='';
-    
-    for(let S=encodeURI(i).replace(/%../g,'i').length;;m=c+m)
-    {
-		for(M=N=e=c=0,i=Q.length;!c&&--i;)!~s.indexOf(Q[i])&&(c=Q[i]);
-		if(!c)break;
-		if(O)
-        {
-			o={};
-			for(x in O)
-				for(j=s.indexOf(x),o[x]=0;~j;o[x]++)j=s.indexOf(x,j+x.length);
-			O=o;
-		}
-        else for(O=o={},t=1;X;t++)
-				for(X=i=0;++i<s.length-t;)
-					if(!o[x=s.substr(j=i,t)])
-						if(~(j=s.indexOf(x,j+t)))
-							for(X=t,o[x]=1;~j;o[x]++)j=s.indexOf(x,j+t);
-		for(let x in O) 
-        {
-			j=encodeURI(x).replace(/%../g,'i').length;
-			if(j=(R=O[x])*j-j-(R+1)*encodeURI(c).replace(/%../g,'i').length)
-				(j>M||j==M&&R>N)&&(M=j,N=R,e=x);
-			if(j<1)
-				delete O[x]
-		}
-		o={};
-		for(let x in O)
-			o[x.split(e).join(c)]=1;
-		O=o;
-		if(!e)break;
-		s=s.split(e).join(c)+c+e
-	}
-    
-    let crushed = s + '\u0001' + m;
-    return encodeURIComponent(crushed);
-}
-
-let JSONUncrush = function(string)
-{
-    let c = string.split('\u0001');
-    let a = c[0];
-    let b = c[1];
-    for(let c in b)
-    {
-        let d = a.split(b[c]);
-        a=d.join(d.pop());
-    }
-    
-    let uncrushed = JSONCrushSwap(a, 0);
-    return JSON.parse(uncrushed);
-}
-
-let JSONCrushSwap = function(string, forward=true)
-{
-    function Swap(string, g)
-    {
-        let regex = new RegExp(`${(g[2]?g[2]:'')+g[0]}|${(g[3]?g[3]:'')+g[1]}`,'g');
-        return string.replace(regex, $1 => ( $1 === g[0] ? g[1] : g[0] ));
-    }
-
-    // swap out characters for lesser used ones that wont get escaped
-    let swapGroups = 
-    [
-        ['"', "'"],
-        ["':", "!"],
-        [",'", "~"],
-        ['}', ")", '\\', '\\'],
-        ['{', "(", '\\', '\\'],
-    ];
-    
-    if (forward)
-        for (let i=0; i<swapGroups.length;++i)
-            string = Swap(string, swapGroups[i]);
-    else
-        for (let i=swapGroups.length; i--;)
-            string = Swap(string, swapGroups[i]);
-        
-    return string;
-}
+function JSONCrush(e){let t=[];const n="-_.!~*'()";for(let e=127;--e;)(e>=48&&e<=57||e>=65&&e<=90||e>=97&&e<=122||n.includes(String.fromCharCode(e)))&&t.push(String.fromCharCode(e));for(let e=32;e<255;++e){let n=String.fromCharCode(e);"\\"==n||t.includes(n)||t.unshift(n)}const l=((e,t)=>{let n=t.length,l="";const r=e=>encodeURI(encodeURIComponent(e)).replace(/%../g,"i").length,o=e=>{let t=e.charCodeAt(0),n=e.charCodeAt(e.length-1);return t>=56320&&t<=57343||n>=55296&&n<=56319};let i={};for(let t=2;t<50;t++)for(let n=0;n<e.length-t;++n){let l=e.substr(n,t);if(i[l])continue;if(o(l))continue;let r=1;for(let o=e.indexOf(l,n+t);o>=0;++r)o=e.indexOf(l,o+t);r>1&&(i[l]=r)}for(;;){for(;n--&&e.includes(t[n]););if(n<0)break;let o,f=t[n],s=0,c=r(f);for(let e in i){let t=i[e],n=(t-1)*r(e)-(t+1)*c;l.length||(n-=r("")),n<=0?delete i[e]:n>s&&(o=e,s=n)}if(!o)break;e=e.split(o).join(f)+f+o,l=f+l;let u={};for(let t in i){let n=t.split(o).join(f),l=0;for(let t=e.indexOf(n);t>=0;++l)t=e.indexOf(n,t+n.length);l>1&&(u[n]=l)}i=u}return{a:e,b:l}})(e=JSONCrushSwap(e=e.replace(new RegExp("","g"),"")),t);let r=l.a;return l.b.length&&(r+=""+l.b),encodeURIComponent(r+'_')}function JSONUncrush(e){e=e.substring(0, e.length-1);const t=e.split("");let n=t[0];if(t.length>1){let e=t[1];for(let t of e){let e=n.split(t);n=e.join(e.pop())}}return JSONCrushSwap(n,0)}function JSONCrushSwap(e,t=1){const n=[['"',"'"],["':","!"],[",'","~"],["}",")","\\","\\"],["{","(","\\","\\"]],l=(e,t)=>{let n=new RegExp(`${(t[2]?t[2]:"")+t[0]}|${(t[3]?t[3]:"")+t[1]}`,"g");return e.replace(n,e=>e===t[0]?t[1]:t[0])};if(t)for(let t=0;t<n.length;++t)e=l(e,n[t]);else for(let t=n.length;t--;)e=l(e,n[t]);return e}
 
 ///////////////////////////////////////////////////////////////////////  
 
